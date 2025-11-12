@@ -50,7 +50,7 @@ app.post("/login", (req, res) => {
     let sName = req.body.username;
     let sPassword = req.body.password;
 
-    knex.select("username", "password")
+    knex.select("username", "password", "role")
     .from('security')
     .where("username", sName)
     .andWhere("password", sPassword)
@@ -59,6 +59,7 @@ app.post("/login", (req, res) => {
       if (users.length > 0) {
         req.session.isLoggedIn = true;
         req.session.username = sName;
+        req.session.role = users[0].role;
         res.redirect("/landing");
       } else {
         // No matching user found
@@ -69,6 +70,7 @@ app.post("/login", (req, res) => {
       console.error("Login error:", err);
       res.render("login", { error_message: "Invalid login" });
     });
+
 
 }); 
 

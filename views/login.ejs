@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Dairy Farm Login</title>
+<style>
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    background-color: #e0e0e0; /* gentler grey */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .login-container {
+    background: white;
+    padding: 24px 32px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    width: 320px;
+  }
+  h2 {
+    margin-top: 0;
+    color: #2563eb;
+    text-align: center;
+  }
+  label {
+    display: block;
+    margin-top: 16px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+  input[type="text"],
+  input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 6px;
+    border: 1.5px solid #a0a0a0;
+    border-radius: 8px;
+    font-size: 14px;
+    font-style: italic;
+    color: #888888; /* grey placeholder style */
+    outline-offset: 2px;
+    transition: border-color 0.3s, font-style 0.3s, color 0.3s;
+  }
+  input[type="text"]:focus,
+  input[type="password"]:focus {
+    border-color: #2563eb;
+    font-style: normal;
+    color: #0f172a;
+  }
+  button {
+    width: 100%;
+    padding: 12px 0;
+    margin-top: 24px;
+    border: none;
+    border-radius: 8px;
+    background-color: #2563eb;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s;
+  }
+  button:hover {
+    background-color: #1e40af;
+  }
+  .error-message {
+    color: #dc2626;
+    margin-top: 12px;
+    font-size: 13px;
+    text-align: center;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="login-container">
+  <h2>Ward's Dairy Login</h2>
+  <form action="/DairyLogin" method="POST">
+    <input 
+      type="text" 
+      id="username" 
+      name="username" 
+      placeholder="Username" 
+      autocomplete="username" 
+      required 
+      onfocus="this.style.fontStyle='normal'; this.style.color='#0f172a';" 
+      onblur="if(!this.value){this.style.fontStyle='italic'; this.style.color='#888888';}" 
+    />
+    <input 
+      type="password" 
+      id="password" 
+      name="password" 
+      placeholder="Password" 
+      autocomplete="current-password" 
+      required 
+      onfocus="this.style.fontStyle='normal'; this.style.color='#0f172a';" 
+      onblur="if(!this.value){this.style.fontStyle='italic'; this.style.color='#888888';}" 
+    />
+    <button type="submit">Log In</button>
+    <div id="errorMessage" class="error-message">Invalid username or password.</div>
+  </form>
+</div>
+</body>
+</html>
