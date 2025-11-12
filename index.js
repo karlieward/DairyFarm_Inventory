@@ -32,13 +32,13 @@ app.use(express.urlencoded({extended: true}));
 
 app.use((req, res => {
     if (req.path === '/' || req.path === '/login' || req.path === '/logout') {return next();}
-    if (req.session.isLoggedIn) {res.render('index');}
+    if (req.session.isLoggedIn) {res.render('landing');}
     else {res.render('login', { error_message: "Please log in to access this page"});} 
 }));
 
 app.get("/", (req, res) => {
     if (req.session.isLoggedIn) {        
-        res.render("index");
+        res.render("landing");
     } 
     else {
       res.render("login", { error_message: "" });
