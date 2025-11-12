@@ -14,7 +14,7 @@ const knex = require("knex")({
         database : process.env.DB_NAME,
         port : process.env.DB_PORT
     }
-});asd
+});
 
 let app = express();
 
