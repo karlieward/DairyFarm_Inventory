@@ -10,8 +10,10 @@
         <p>Secretary viewable things</p>
     </div>
 
-    <div class="managerViewableItems" id="managerViewableItems">
-        <button>View Database</button>
-    </div>
+    <% if (user.role == "manager") { %>
+        <div class="managerViewableItems" id="managerViewableItems">
+            <button>View Database</button>
+        </div>
+    <% } %>
 </body>
 </html>
