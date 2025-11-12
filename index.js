@@ -9,7 +9,7 @@ const knex = require("knex")({
     client: "pg",
     connection: {
         host : process.env.DB_HOST,
-        user : process.env.DB_USER,
+        user : process.env.DB_USERNAME,
         password : process.env.DB_PASSWORD,
         database : process.env.DB_NAME,
         port : process.env.DB_PORT
@@ -30,11 +30,11 @@ app.use(
 )
 app.use(express.urlencoded({extended: true}));
 
-app.use((req, res => {
+app.use((req, res, next) => {
     if (req.path === '/' || req.path === '/login' || req.path === '/logout') {return next();}
-    if (req.session.isLoggedIn) {res.render('landing');}
+    if (req.session.isLoggedIn) {return next();;}
     else {res.render('login', { error_message: "Please log in to access this page"});} 
-}));
+});
 
 app.get("/", (req, res) => {
     if (req.session.isLoggedIn) {        
@@ -94,5 +94,5 @@ app.get("/landing", (req, res) => {
 
 app.listen(port, () => {
     console.log("The server is listening");
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${port}`);
 })
