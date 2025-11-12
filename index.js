@@ -32,7 +32,9 @@ app.use(express.urlencoded({extended: true}));
 
 app.use((req, res, next) => {
     if (req.path === '/' || req.path === '/login' || req.path === '/logout') {return next();}
+
     if (req.session.isLoggedIn) {return next();;}
+
     else {res.render('login', { error_message: "Please log in to access this page"});} 
 });
 
