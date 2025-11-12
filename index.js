@@ -73,7 +73,6 @@ app.post("/login", (req, res) => {
       res.render("login", { error_message: "Invalid login" });
     });
 
-
 }); 
 
 app.get("/logout", (req, res) => {
