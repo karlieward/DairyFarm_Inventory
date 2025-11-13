@@ -85,13 +85,67 @@ app.get("/logout", (req, res) => {
     });
 });
 
-app.get("/landing", (req, res) => {
-  if (req.session.isLoggedIn) {
-    res.render("landing");
-  } else {
-    res.render("login", { error_message: "Please log in to access this page" });
+app.get("/landing", async (req, res) => {
+  if (!req.session.isLoggedIn) {
+    return res.render("login", { error_message: "Please log in to access this page" });
+  }
+
+  try {
+    // 1. Get all departments (column: departmentid, departmentname)
+    const departments = await knex("departments").select();
+
+    // 2. Get all department-medication pairings with medication details
+    const results = await knex("department_medications as dm")
+      .join("medications as m", "dm.medicationid", "m.medicationid")
+      .select(
+        "dm.departmentid",
+        "m.medicationid",
+        "m.medname",
+        "m.quantityonhand",
+        "m.image"
+      );
+
+    // 3. Attach medications for each department
+const departmentsWithMeds = departments.map(dept => {
+  // Get medications for this department
+  let items = results
+    .filter(r => r.departmentid === dept.departmentid)
+    .map(med => ({
+      id: med.medicationid,
+      medname: med.medname,
+      quantityonhand: med.quantityonhand,
+      image: med.image
+    }));
+  // Sort alphabetically by medname
+  items = items.sort((a, b) => a.medname.localeCompare(b.medname));
+  return { ...dept, items };
+});
+
+
+    res.render("landing", { departments: departmentsWithMeds });
+  } catch (err) {
+    console.error("Error loading data:", err);
+    res.render("landing", { departments: [], error_message: "Could not load departments." });
   }
 });
+
+app.post('/checkout', express.json(), async (req, res) => {
+  const checkouts = req.body.items; // medicationid and quantity
+  try {
+    for (const item of checkouts) {
+      // Decrement inventory for each item (careful: do not allow < 0)
+      await knex('medications')
+        .where('medicationid', item.medicationid)
+        .decrement('quantityonhand', item.quantity);
+    }
+    res.json({success: true, message: 'Checkout successful!'});
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({success: false, message: 'Checkout failed!'});
+  }
+});
+
+
 
 app.listen(port, () => {
     console.log("The server is listening");
