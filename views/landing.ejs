@@ -27,6 +27,12 @@
   </style>
 </head>
 <body>
+  <%- include('banner', {
+    showLogout: true,
+    showRecords: false,
+    showBack: false
+}) %>
+
   <div class="app">
     <aside class="sidebar">
       <div style="font-size:13px; margin-bottom:8px;">Departments</div>
