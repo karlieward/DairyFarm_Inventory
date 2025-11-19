@@ -164,6 +164,10 @@
         document.querySelector('.dept-section[data-idx="' + idx + '"]').style.display = '';
         document.querySelectorAll('.dept-btn').forEach(b => b.removeAttribute('aria-current'));
         btn.setAttribute('aria-current', 'true');
+
+        // Clear any unsubmitted quantities when switching departments to avoid mixing orders.
+        document.querySelectorAll('.checkout-qty').forEach(input => { input.value = 0; });
+        updateSummary();
       });
     });
 
