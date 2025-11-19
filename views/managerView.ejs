@@ -63,191 +63,52 @@
   </style>
 </head>
 <body>
-  <div class="app">
-    <aside class="card shadow sidebar" aria-label="sidebar">
-      <div class="kicker">Search</div>
-      <div class="search">
-        <input id="searchInput" type="search" placeholder="Search medicine..." aria-label="Search medicine">
-      </div>
-      <div class="kicker">Departments</div>
-      <div id="deptList" class="dept-list" role="tablist" aria-label="Departments"><button class="dept-btn" role="tab" aria-selected="true" aria-current="true">Department A</button><button class="dept-btn" role="tab" aria-selected="false" aria-current="false">Department B</button><button class="dept-btn" role="tab" aria-selected="false" aria-current="false">Department C</button><button class="dept-btn" role="tab" aria-selected="false" aria-current="false">Department D</button></div>
-    </aside>
+  <h1>Manager View</h1>
+  <a href="landing" class="btn btn-primary mt-3">Back To Landing</a>
+  <h3>Add Medication</h3>
+  <form action="/managerView/add" method="POST" enctype="multipart/form-data">
+    <input type="text" name="medname" placeholder="Medication Name" required>
+    <input type="number" name="quantity" placeholder="Quantity" required>
+    <input type="text" name="category" placeholder="Category" required>
+    <input type="file" name="image" accept="image/*" required>
+    <button type="submit">Add</button>
+  </form>
 
-    <main class="main">
-      <section class="card shadow products" aria-label="Products">
-        <h2 id="productsTitle">Department A</h2>
-        <div id="productGrid" class="grid"><div class="item" data-item-id="paracetamol"><div class="item-head"><div class="thumb" title="placeholder image">💊</div><div><div style="font-weight:600">Paracetamol</div><div style="color:var(--muted); font-size:12px;">Pain relief</div></div></div><div class="qty"><button type="button">−</button><input type="number" min="0"><button type="button">+</button></div><div style="color: var(--muted); font-size: 12px;">In stock: 120</div></div><div class="item" data-item-id="ibuprofen"><div class="item-head"><div class="thumb" title="placeholder image">💊</div><div><div style="font-weight:600">Ibuprofen</div><div style="color:var(--muted); font-size:12px;">Anti-inflammatory</div></div></div><div class="qty"><button type="button">−</button><input type="number" min="0"><button type="button">+</button></div><div style="color: var(--muted); font-size: 12px;">In stock: 80</div></div><div class="item" data-item-id="cough-syrup"><div class="item-head"><div class="thumb" title="placeholder image">💊</div><div><div style="font-weight:600">Cough Syrup</div><div style="color:var(--muted); font-size:12px;">Expectorant</div></div></div><div class="qty"><button type="button">−</button><input type="number" min="0"><button type="button">+</button></div><div style="color: var(--muted); font-size: 12px;">In stock: 40</div></div></div>
-      </section>
 
-      <section class="card shadow summary" aria-label="Summary">
-        <h3>Summary for checkout</h3>
-        <div id="summaryList" class="summary-list" aria-live="polite"></div>
-      </section>
+  <table>
+    <thead>
+      <tr>
+        <% if (inventory.length > 0) { %> <!-- If there is more than one row in 'inventory'-->
+          <% Object.keys(inventory[0]).forEach(col => { %>
+            <th><%= col %></th>
+          <% }) %>
+        <% } else { %>
+          <th>No Data to Display</th>
+        <% } %>
+      </tr>
+    </thead>
+    <tbody>
+      <% inventory.forEach(item => { %>
+      <tr>
+        <td><%= item.medname %></td>
+        <td><%= item.quantity %></td>
+        <td><%= item.category %></td>
+        <td>
+          <% if (item.image) { %>
+            <img src="<%= item.image %>" alt="Image" width="50">
+          <% } %>
+        </td>
+        <td>
+          <a href="/managerView/edit/<%= item.id %>">Edit</a>
+          <form action="/managerView/delete/<%= item.id %>" method="POST" style="display:inline">
+            <button type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
 
-      <section class="card shadow inventory" aria-label="Current Inventory">
-        <h3 style="margin-top:0">Current Inventory (Static)</h3>
-        <table id="inventoryTable" aria-describedby="Static inventory table">
-          <thead>
-            <tr><th>Department</th><th>Medicine</th><th>In Stock</th></tr>
-          </thead>
-          <tbody><tr><td>Department A</td><td>Paracetamol</td><td>120</td></tr><tr><td>Department A</td><td>Ibuprofen</td><td>80</td></tr><tr><td>Department A</td><td>Cough Syrup</td><td>40</td></tr><tr><td>Department B</td><td>Amoxicillin</td><td>55</td></tr><tr><td>Department B</td><td>Azithromycin</td><td>30</td></tr><tr><td>Department B</td><td>Cephalexin</td><td>22</td></tr><tr><td>Department C</td><td>Loratadine</td><td>70</td></tr><tr><td>Department C</td><td>Diphenhydramine</td><td>28</td></tr><tr><td>Department C</td><td>Pseudoephedrine</td><td>18</td></tr><tr><td>Department D</td><td>Omeprazole</td><td>64</td></tr><tr><td>Department D</td><td>Loperamide</td><td>26</td></tr><tr><td>Department D</td><td>Oral Rehydration</td><td>92</td></tr></tbody>
-        </table>
-      </section>
-    </main>
-  </div>
 
-  <script>
-    const DATA = {
-      departments: [
-        { id: 'A', name: 'Department A', items: [
-          { id:'paracetamol', name:'Paracetamol', note:'Pain relief', stock: 120 },
-          { id:'ibuprofen', name:'Ibuprofen', note:'Anti-inflammatory', stock: 80 },
-          { id:'cough-syrup', name:'Cough Syrup', note:'Expectorant', stock: 40 },
-        ]},
-        { id: 'B', name: 'Department B', items: [
-          { id:'amoxicillin', name:'Amoxicillin', note:'Antibiotic', stock: 55 },
-          { id:'azithromycin', name:'Azithromycin', note:'Antibiotic', stock: 30 },
-          { id:'cephalexin', name:'Cephalexin', note:'Antibiotic', stock: 22 },
-        ]},
-        { id: 'C', name: 'Department C', items: [
-          { id:'loratadine', name:'Loratadine', note:'Antihistamine', stock: 70 },
-          { id:'diphenhydramine', name:'Diphenhydramine', note:'Antihistamine', stock: 28 },
-          { id:'pseudoephedrine', name:'Pseudoephedrine', note:'Decongestant', stock: 18 },
-        ]},
-        { id: 'D', name: 'Department D', items: [
-          { id:'omeprazole', name:'Omeprazole', note:'Acid reducer', stock: 64 },
-          { id:'loperamide', name:'Loperamide', note:'Anti-diarrheal', stock: 26 },
-          { id:'oral-rehydration', name:'Oral Rehydration', note:'Electrolyte', stock: 92 },
-        ]},
-      ]
-    };
-
-    let activeDept = DATA.departments[0].id;
-
-    const $ = (sel, el=document) => el.querySelector(sel);
-    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
-
-    function renderDepartments() {
-      const host = $('#deptList');
-      host.innerHTML = '';
-      for (const d of DATA.departments) {
-        const btn = document.createElement('button');
-        btn.className = 'dept-btn';
-        btn.setAttribute('role','tab');
-        btn.setAttribute('aria-selected', d.id === activeDept);
-        btn.setAttribute('aria-current', d.id === activeDept);
-        btn.textContent = d.name;
-        btn.addEventListener('click', () => { activeDept = d.id; renderDepartments(); renderProducts(); });
-        host.appendChild(btn);
-      }
-    }
-
-    function makeItemCard(item) {
-      const wrap = document.createElement('div');
-      wrap.className = 'item';
-
-      const head = document.createElement('div');
-      head.className = 'item-head';
-
-      const thumb = document.createElement('div');
-      thumb.className = 'thumb';
-      thumb.title = 'placeholder image';
-      thumb.textContent = '💊';
-
-      const nameNote = document.createElement('div');
-      nameNote.innerHTML = `<div style="font-weight:600">${item.name}</div><div style="color:var(--muted); font-size:12px;">${item.note}</div>`;
-
-      head.append(thumb, nameNote);
-
-      const qty = document.createElement('div');
-      qty.className = 'qty';
-      const minus = document.createElement('button'); minus.type='button'; minus.textContent='−';
-      const plus = document.createElement('button'); plus.type='button'; plus.textContent='+';
-      const input = document.createElement('input'); input.type='number'; input.value='0'; input.min='0';
-      minus.addEventListener('click', () => { input.value = Math.max(0, (parseInt(input.value)||0) - 1); updateSummary(); });
-      plus.addEventListener('click', () => { input.value = (parseInt(input.value)||0) + 1; updateSummary(); });
-      qty.append(minus, input, plus);
-
-      const stock = document.createElement('div');
-      stock.style.color = 'var(--muted)';
-      stock.style.fontSize = '12px';
-      stock.textContent = `In stock: ${item.stock}`;
-
-      wrap.append(head, qty, stock);
-      wrap.dataset.itemId = item.id;
-      return wrap;
-    }
-
-    function renderProducts() {
-      const dept = DATA.departments.find(d => d.id === activeDept);
-      $('#productsTitle').textContent = dept.name;
-      const grid = $('#productGrid');
-      grid.innerHTML = '';
-
-      const term = $('#searchInput').value.trim().toLowerCase();
-      const items = dept.items.filter(it => it.name.toLowerCase().includes(term));
-
-      if (items.length === 0) {
-        const empty = document.createElement('div');
-        empty.style.color = 'var(--muted)';
-        empty.textContent = 'No matches in this department.';
-        grid.appendChild(empty);
-        return;
-      }
-
-      for (const item of items) {
-        grid.appendChild(makeItemCard(item));
-      }
-
-      $$('#deptList .dept-btn').forEach((b, i) => {
-        const d = DATA.departments[i];
-        b.setAttribute('aria-current', d.id === activeDept);
-        b.setAttribute('aria-selected', d.id === activeDept);
-      });
-    }
-
-    function updateSummary() {
-      const host = $('#summaryList');
-      host.innerHTML = '';
-      const items = $$('#productGrid .item');
-      const selected = items.filter(it => parseInt(it.querySelector('input[type="number"]').value) > 0);
-
-      if (selected.length === 0) {
-        host.innerHTML = '<div style="color:var(--muted); padding:8px;">No items selected.</div>';
-        return;
-      }
-
-      for (const it of selected) {
-        const name = it.querySelector('div[style*="font-weight"]').textContent;
-        const qty = it.querySelector('input[type="number"]').value;
-        const row = document.createElement('div');
-        row.style.display = 'flex';
-        row.style.justifyContent = 'space-between';
-        row.style.padding = '6px 8px';
-        row.style.borderBottom = '1px dashed var(--line)';
-        row.innerHTML = `<div>${name}</div><div>× ${qty}</div>`;
-        host.appendChild(row);
-      }
-    }
-
-    function renderInventoryTable() {
-      const tbody = $('#inventoryTable tbody');
-      tbody.innerHTML = '';
-      for (const d of DATA.departments) {
-        for (const it of d.items) {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `<td>${d.name}</td><td>${it.name}</td><td>${it.stock}</td>`;
-          tbody.appendChild(tr);
-        }
-      }
-    }
-
-    $('#searchInput').addEventListener('input', () => renderProducts());
-
-    renderDepartments();
-    renderProducts();
-    renderInventoryTable();
-  </script>
-
+  </table>
 
 </body></html>
