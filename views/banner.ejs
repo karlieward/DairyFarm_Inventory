@@ -11,9 +11,10 @@
     width: 100%;
     box-sizing: border-box;
     position: relative;
-    /* Add this for it to sit at the very top */
   }
-  .banner-left, .banner-center, .banner-right {
+  .banner-left,
+  .banner-center,
+  .banner-right {
     flex: 1;
   }
   .banner-left {
@@ -29,7 +30,9 @@
     height: 150px;
     vertical-align: middle;
   }
-  .logout-link, .records-btn, .back-btn {
+  .logout-link,
+  .records-btn,
+  .back-btn {
     color: #fff;
     background: #3498db;
     text-decoration: none;
@@ -46,7 +49,8 @@
   .logout-link:hover {
     background: #c0392b;
   }
-  .records-btn:hover, .back-btn:hover {
+  .records-btn:hover,
+  .back-btn:hover {
     background: #217dbb;
   }
   #company {
@@ -55,13 +59,17 @@
 </style>
 <header class="banner">
   <div class="banner-left">
-    <div id="company">Wards' Dairies</div> 
+    <div id="company">Wards' Dairies</div>
     <% if (showBack) { %>
       <a href="<%= backUrl %>" class="back-btn">Back</a>
     <% } %>
   </div>
   <div class="banner-center">
+<<<<<<< Updated upstream
     <img src="/images/WardsDairy.png" alt="Logo" class="banner-logo" />
+=======
+    <img src="/images/WardsDairy.png" alt="Wards Dairy Logo" class="banner-logo" />
+>>>>>>> Stashed changes
   </div>
   <div class="banner-right">
     <% if (showRecords) { %>
