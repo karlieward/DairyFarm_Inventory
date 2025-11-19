@@ -86,7 +86,6 @@
     margin-top: 16px;
     font-size: 14px;
     text-align: center;
-    display: none;
   }
   button {
     margin-bottom: 28px;
@@ -119,7 +118,9 @@
           required 
         />
         <button type="submit">Log In</button>
-        <div id="errorMessage" class="error-message">Invalid username or password.</div>
+        <% if (error_message) { %>
+          <div class="error-message"><%= error_message %></div>
+        <% } %>
       </form>
     </div>
   </div>
