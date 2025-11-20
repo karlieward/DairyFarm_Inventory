@@ -81,6 +81,19 @@
     <% if (showLogout) { %>
       <a href="/logout" class="logout-link">Logout</a>
     <% } %>
+    <!-- ADMIN BUTTON START -->
+      <% 
+        //This admin-only button now links to managerView.ejs via /managerView route
+        //Functionality: Navigates to managerView.ejs, which should only be accessible to admins.
+      %>
+      <% if (typeof role !== 'undefined' && role === 'admin') { %>
+        <a href="/managerView" class="admin-btn-link">
+          <button class="admin-btn" type="button">
+            Go to Manager View
+          </button>
+        </a>
+      <% } %>
+      <!-- ADMIN BUTTON END -->
   </div>
 </header>
 
