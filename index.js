@@ -201,25 +201,6 @@ app.get("/managerView", async (req, res) => {
 });
 
 
-
-app.get("/managerView", async (req, res) => {
-  if (!req.session.isLoggedIn) {
-    res.render("login");
-  } 
-  const isAdmin = req.session.role === "admin";
-  if (!isAdmin) {
-    req.session.error_message = "You do not have the credentials to view that page";
-    return res.redirect("landing");
-  }
-  try {
-    const inventory = await db('medications').select().orderBy('medname');
-    res.render("managerView", { inventory });
-  } catch (err){
-    console.error(err);
-    res.status(500).send('Error retrieving inventory data');
-  }
-});
-
 app.get("/managerView/add", async (req, res) => {
   if (!req.session.isLoggedIn)  {
       return res.render("login", { error_message: "Please log in" });
