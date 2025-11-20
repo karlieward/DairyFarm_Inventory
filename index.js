@@ -172,22 +172,34 @@ const departmentsWithMeds = departments.map(dept => {
 
 
 app.get("/managerView", async (req, res) => {
-  if (!req.session.isLoggedIn) return res.render("login");
-  if (req.session.role !== "admin") {
-    req.session.error_message = "You do not have the credentials to view that page";
-    return res.redirect("/landing");
+  if (!req.session.isLoggedIn) {
+    return res.render("login");
   }
+
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
+  }
+
+  const searchQuery = req.query.search || "";
+
   try {
-    const inventory = await db('medications').select().orderBy('medname');
-    res.render("managerView", {
-      inventory,
-      role: req.session.role // <-- THIS FIXES YOUR ERROR!
-    });
-  } catch (err){
+    let query = db('medications').select().orderBy('medname');
+    
+    if (searchQuery) {
+      query = query.where('medname', 'ilike', `%${searchQuery}%`); // PostgreSQL ilike for case-insensitive search
+    }
+
+    const inventory = await query;
+
+    res.render("managerView", { inventory, searchQuery });
+  } catch (err) {
     console.error(err);
     res.status(500).send('Error retrieving inventory data');
   }
 });
+
 
 
 
