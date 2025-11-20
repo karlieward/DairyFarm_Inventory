@@ -16,7 +16,7 @@ const db = require("knex")({
 
 const multer = require('multer');
 const uploadRoot = path.join(__dirname, "images");
-const uploadDir = path.join(uploadRoot, "uploads");
+const uploadDir = uploadRoot;
 // Where to store uploaded images
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
@@ -283,23 +283,48 @@ app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, 
   if (!req.session.isLoggedIn) {
     return res.render("login", { error_message: "Please log in" });
   }
+
   const isAdmin = req.session.role === "admin";
   if (!isAdmin) {
     req.session.error_message = "You do not have the credentials to view that page";
     return res.redirect("landing");
   }
+
   const medicationid = req.params.medicationid;
-  // Start with a copy of the form data
+
+  // Copy form data
   let updateData = { ...req.body };
-  // If a file was uploaded, replace the image field
+
+  // Handle image
   if (req.file) {
     updateData.image = "/images/" + req.file.filename;
   } else {
-    // keep existing image
     updateData.image = req.body.existingImage || null;
   }
-  // Remove fields that should NOT go to the DB
+
+  // Remove non-DB fields
   delete updateData.existingImage;
+
+  // Convert numeric fields to proper types
+  const numericFields = [
+    "quantityonhand",
+    "minquantity",
+    "price",
+    "meatwithhold",
+    "milkwithhold",
+    "vendorid"
+  ];
+
+  numericFields.forEach(field => {
+    if (updateData[field] === "") {
+      // optional numeric fields → null
+      updateData[field] = null;
+    } else if (updateData[field] !== undefined) {
+      // parse as int or float
+      updateData[field] = field === "price" ? parseFloat(updateData[field]) : parseInt(updateData[field]);
+    }
+  });
+
   try {
     await db("medications")
       .where({ medicationid })
@@ -307,17 +332,11 @@ app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, 
 
     res.redirect("/managerView");
   } catch (err) {
-    console.error(err);
+    console.error("Error updating medication:", err);
     res.status(500).send("Error updating medication");
   }
-  try {
-    await db('medications').where({ medicationid }).update(updateData);
-    res.redirect("/managerView");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error updating medication");
-  };
 });
+
 
 
 
