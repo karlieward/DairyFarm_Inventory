@@ -321,17 +321,16 @@ app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, 
 
 
 
-app.post("/managerView/delete/:id", async (req, res) => {
+app.post("/managerView/delete/:medicationid", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
   const isAdmin = req.session.role === "admin";
   if (!isAdmin) {
     req.session.error_message = "You do not have the credentials to view that page";
     return res.redirect("landing");
   }
-  const { id } = req.params;
 
   try {
-    await db('medications').where({ id }).del();
+    await db('medications').where({ medicationid: req.params.medicationid }).del();
     res.redirect("/managerView");
   } catch (err) {
     console.error(err);
