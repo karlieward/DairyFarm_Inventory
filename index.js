@@ -4,8 +4,7 @@ const session = require('express-session');
 const path = require('path');
 const bodyParser = require('body-parser');
 const port = process.env.PORT || 3000;
-
-const knex = require("knex")({
+const db = require("knex")({
     client: "pg",
     connection: {
         host : process.env.DB_HOST,
@@ -15,6 +14,23 @@ const knex = require("knex")({
         port : process.env.DB_PORT
     }
 });
+
+const multer = require('multer');
+const uploadRoot = path.join(__dirname, "images");
+const uploadDir = path.join(uploadRoot, "uploads");
+// Where to store uploaded images
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        cb(null, uploadDir); // store in /images folder
+    },
+    filename: function(req, file, cb) {
+        // Keep the filename
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage: storage });
+
+
 
 let app = express();
 
@@ -52,7 +68,7 @@ app.post("/login", (req, res) => {
     let sName = req.body.username;
     let sPassword = req.body.password;
 
-    knex.select("username", "password", "role")
+    db.select("username", "password", "role")
     .from('security')
     .where("username", sName)
     .andWhere("password", sPassword)
@@ -68,7 +84,7 @@ app.post("/login", (req, res) => {
         res.render("login", { error_message: "Invalid login" });
       }
     })
-    .catch(err => {  //zThis is exxception handling
+    .catch(err => {  // This is exception handling
       console.error("Login error:", err);
       res.render("login", { error_message: "Invalid login" });
     });
@@ -131,6 +147,72 @@ const departmentsWithMeds = departments.map(dept => {
     res.render("landing", { departments: [], error_message: "Could not load departments." });
   }
 });
+
+app.get("/managerView", async (req, res) => {
+  if (!req.session.isLoggedIn) {
+    res.render("login");
+  } 
+  try {
+    const inventory = await db('medications').select().orderBy('medname');
+    res.render("managerView", { inventory });
+  } catch (err){
+    console.error(err);
+    res.status(500).send('Error retrieving inventory data');
+  }
+});
+
+app.post("/managerView/add", upload.single('image'), async (req, res) => {
+  if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
+
+  const { medname, quantity, category } = req.body;
+  const imagePath = req.file ? '/images/' + req.file.filename : null;
+
+  try {
+    await db('medications').insert({ medname, quantity, category, image: imagePath });
+    res.redirect("/managerView");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error adding medication");
+  }
+});
+
+app.post("/managerView/edit/:id", upload.single('image'), async (req, res) => {
+  if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
+
+  const { id } = req.params;
+  const { medname, quantity, category } = req.body;
+  const updateData = { medname, quantity, category };
+
+  if (req.file) {
+    updateData.image = '/images/' + req.file.filename;
+  }
+
+  try {
+    await db('medications').where({ id }).update(updateData);
+    res.redirect("/managerView");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error updating medication");
+  }
+});
+
+
+
+app.post("/managerView/delete/:id", async (req, res) => {
+  if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
+
+  const { id } = req.params;
+
+  try {
+    await db('medications').where({ id }).del();
+    res.redirect("/managerView");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error deleting medication");
+  }
+});
+
+
 
 app.post('/checkout', express.json(), async (req, res) => {
   const checkouts = req.body.items; // medicationid and quantity
