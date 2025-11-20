@@ -1,0 +1,11 @@
+<h3>Edit Medication</h3>
+<form action="/managerView/edit/<%= item.id %>" method="POST" enctype="multipart/form-data">
+  <input type="text" name="medname" value="<%= item.medname %>" required>
+  <input type="number" name="quantity" value="<%= item.quantity %>" required>
+  <input type="text" name="category" value="<%= item.category %>" required>
+  <% if (item.image) { %>
+    <img src="<%= item.image %>" alt="Current Image" width="100">
+  <% } %>
+  <input type="file" name="image" accept="image/*">
+  <button type="submit">Save</button>
+</form>
