@@ -1,32 +1,107 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Manager View</title>
   <style>
-    :root {
-      --bg: #f7f8fa;
-      --panel: #ffffff;
-      --ink: #0f172a;
-      --line: #e2e8f0;
-      --accent: #2563eb;
-      --accent-weak: #93c5fd;
-      --radius: 12px;
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: #f7f8fa;
     }
-    * { box-sizing: border-box; }
-    body { margin:0; padding:16px; font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--ink);}
-    h1 { margin-bottom: 16px; }
-    .btn { padding: 6px 12px; border-radius: 4px; cursor: pointer; border:none; }
-    .btn-primary { background-color: var(--accent); color: #fff; }
-    .btn-secondary { background-color: #f1f5f9; }
-    .search-bar { margin-bottom: 16px; display:flex; gap:8px; }
-    .search-bar input { flex:1; padding:6px 8px; border:1px solid var(--line); border-radius:4px; }
-    table { width:100%; border-collapse: collapse; background: var(--panel); margin-top:16px; }
-    th, td { padding:8px; border-bottom:1px solid var(--line); text-align:left; }
-    th { background:#f1f5f9; }
-    img { max-width:50px; max-height:50px; border-radius:4px; }
-    form.inline { display:inline; }
+    .app {
+      max-width: 1400px;
+      margin: 24px auto 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 80vh;
+    }
+    .main {
+      width: 100%;
+      max-width: 1400px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 10px 10px 6px 10px; /* smallest padding yet */
+      box-sizing: border-box;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.08);
+      overflow-x: auto;
+    }
+    h1 {
+      margin-top: 0;
+      color: #2563eb;
+      font-size: 1.15em;
+      font-weight: bold;
+    }
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .btn-primary {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.90em;
+      text-decoration: none;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: #1e40af; }
+
+    /* For delete button only, slightly wider */
+    .btn-primary.delete-btn {
+      padding: 5px 24px;
+      background: #ef4444;
+    }
+    .btn-primary.delete-btn:hover {
+      background: #b91c1c;
+    }
+
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 0;
+    }
+    table {
+      min-width: 1100px;
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-top: 0;
+      font-size: 0.88em; /* smallest table text */
+    }
+    th {
+      background: #f1f5f9;
+      white-space: nowrap;
+      font-size: 0.89em;
+      font-weight: 600;
+      padding: 7px 4px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    td {
+      padding: 7px 4px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      vertical-align: middle;
+      max-width: 180px;
+      word-break: break-word;
+      font-size: 0.88em;
+    }
+    td img { max-width: 36px; max-height: 36px; border-radius: 8px; }
+    .edit-btns {
+      display: flex;
+      gap: 5px;
+      justify-content: flex-start;
+    }
   </style>
 </head>
 <body>
@@ -91,5 +166,62 @@
     </tbody>
   </table>
 
+  <%- include('banner', {
+    showLogout: true,
+    showRecords: false,
+    showBack: false,
+    role: role
+  }) %>
+  <div class="app">
+    <main class="main">
+      <h1>Manager View</h1>
+      <div class="action-bar">
+        <a href="/landing" class="btn-primary">Back To Landing</a>
+        <a href="/managerView/add" class="btn-primary">Add Medication</a>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <% if (inventory.length > 0) { %>
+                <% Object.keys(inventory[0]).forEach(col => { %>
+                  <th><%= col %></th>
+                <% }) %>
+                <th>Edit</th>
+                <th>Delete</th>
+              <% } else { %>
+                <th>No Data to Display</th>
+              <% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% inventory.forEach(item => { %>
+              <tr>
+                <% Object.keys(item).forEach(key => { %>
+                  <td>
+                    <% if (key === "image" && item[key]) { %>
+                      <img src="<%= item[key] %>" alt="Image">
+                    <% } else { %>
+                      <%= item[key] %>
+                    <% } %>
+                  </td>
+                <% }) %>
+                <td>
+                  <form action="/managerView/edit/<%= item.medicationid %>" method="get" style="display:inline;">
+                    <input type="submit" value="Edit" class="btn-primary"/>
+                  </form>
+                </td>
+                <td>
+                  <form action="/managerView/delete/<%= item.medicationid %>" method="POST" style="display:inline;">
+                    <button type="submit" class="btn-primary delete-btn">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
 </body>
 </html>
