@@ -161,39 +161,116 @@ app.get("/managerView", async (req, res) => {
   }
 });
 
-app.post("/managerView/add", upload.single('image'), async (req, res) => {
-  if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
-
-  const { medname, quantity, category } = req.body;
-  const imagePath = req.file ? '/images/' + req.file.filename : null;
+app.get("/managerView/add", async (req, res) => {
+  if (!req.session.isLoggedIn) 
+      return res.render("login", { error_message: "Please log in" });
 
   try {
-    await db('medications').insert({ medname, quantity, category, image: imagePath });
-    res.redirect("/managerView");
+    // Get column information from medications table
+    const columns = await db('medications').columnInfo();
+
+    // columns will be an object like { medicationid: {...}, medname: {...}, quantity: {...}, image: {...} }
+    // We'll send it to the template
+    res.render("managerAdd", { columns, error_message: "" });
+
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching table columns:", err);
+    res.status(500).send("Error loading add form");
+  }
+});
+
+app.post("/managerView/add", upload.single('image'), async (req, res) => {
+  if (!req.session.isLoggedIn) 
+      return res.render("login", { error_message: "Please log in" });
+
+  try {
+    // Get all columns info from medications table
+    const columns = await db('medications').columnInfo();
+
+    // Build an object for insertion
+    let insertData = {};
+
+    Object.keys(columns).forEach(col => {
+      if (col === 'medicationid') return; // skip primary key
+      if (col === 'image') {
+        // If a file was uploaded, use its path
+        insertData[col] = req.file ? '/images/' + req.file.filename : null;
+      } else {
+        // Otherwise, take the value from the form
+        insertData[col] = req.body[col] || null;
+      }
+    });
+
+    // Insert into the DB
+    await db('medications').insert(insertData);
+
+    res.redirect("/managerView");
+
+  } catch (err) {
+    console.error("Error adding medication:", err);
     res.status(500).send("Error adding medication");
   }
 });
 
-app.post("/managerView/edit/:id", upload.single('image'), async (req, res) => {
+app.get("/managerView/edit/:medicationid", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
 
-  const { id } = req.params;
-  const { medname, quantity, category } = req.body;
-  const updateData = { medname, quantity, category };
-
-  if (req.file) {
-    updateData.image = '/images/' + req.file.filename;
-  }
-
   try {
-    await db('medications').where({ id }).update(updateData);
+    const item = await db("medications")
+      .where({ medicationid: req.params.medicationid })
+      .first();
+
+    if (!item) {
+      const inventory = await db('medications').select().orderBy('medname');
+      return res.status(404).render("managerView", { inventory, error_message: "Item not found." });
+    }
+
+    // Fetch table columns dynamically
+    const columns = await db('medications').columnInfo();
+
+    res.render("managerEdit", { item, columns, error_message: "" });
+
+  } catch (err) {
+    console.error("Error fetching item:", err);
+    const inventory = await db('medications').select().orderBy('medname');
+    res.status(500).render("managerView", { inventory, error_message: "Unable to load item for editing." });
+  }
+});
+
+
+app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, res) => {
+  if (!req.session.isLoggedIn) {
+    return res.render("login", { error_message: "Please log in" });
+  }
+  const medicationid = req.params.medicationid;
+  // Start with a copy of the form data
+  let updateData = { ...req.body };
+  // If a file was uploaded, replace the image field
+  if (req.file) {
+    updateData.image = "/images/" + req.file.filename;
+  } else {
+    // keep existing image
+    updateData.image = req.body.existingImage || null;
+  }
+  // Remove fields that should NOT go to the DB
+  delete updateData.existingImage;
+  try {
+    await db("medications")
+      .where({ medicationid })
+      .update(updateData);
+
     res.redirect("/managerView");
   } catch (err) {
     console.error(err);
     res.status(500).send("Error updating medication");
   }
+  try {
+    await db('medications').where({ medicationid }).update(updateData);
+    res.redirect("/managerView");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error updating medication");
+  };
 });
 
 
@@ -211,6 +288,15 @@ app.post("/managerView/delete/:id", async (req, res) => {
     res.status(500).send("Error deleting medication");
   }
 });
+
+
+
+
+
+
+
+
+
 
 
 
