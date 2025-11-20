@@ -329,13 +329,19 @@ app.post("/managerView/delete/:medicationid", async (req, res) => {
     return res.redirect("landing");
   }
 
-  try {
-    await db('medications').where({ medicationid: req.params.medicationid }).del();
-    res.redirect("/managerView");
-  } catch (err) {
-    console.error(err);
-    res.status(500).send("Error deleting medication");
-  }
+try {
+  // Delete from all tables that reference this medication
+  await db("department_medications").where({ medicationid: req.params.medicationid }).del();
+  await db("treatment_medications").where({ medicationid: req.params.medicationid }).del();
+
+  // Now safe to delete medication
+  await db("medications").where({ medicationid: req.params.medicationid }).del();
+
+  res.redirect("/managerView");
+} catch (err) {
+  console.error(err);
+  res.status(500).send("Error deleting medication");
+}
 });
 
 
