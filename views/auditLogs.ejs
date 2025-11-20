@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Audit Logs</title>
+  <style>
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f0f0f0; }
+    pre { margin: 0; }
+  </style>
+</head>
+<body>
+  <h1>Audit Logs</h1>
+  <a href="/managerView">Back to Manager View</a>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>User ID</th>
+        <th>Action</th>
+        <th>Table</th>
+        <th>Record ID</th>
+        <th>Old Data</th>
+        <th>New Data</th>
+        <th>Timestamp</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% logs.forEach(log => { %>
+        <tr>
+          <td><%= log.id %></td>
+          <td><%= log.user_id %></td>
+          <td><%= log.action %></td>
+          <td><%= log.table_name %></td>
+          <td><%= log.record_id %></td>
+          <td><pre><%= JSON.stringify(log.old_data, null, 2) %></pre></td>
+          <td><pre><%= JSON.stringify(log.new_data, null, 2) %></pre></td>
+          <td><%= new Date(log.timestamp).toLocaleString() %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</body>
+</html>
