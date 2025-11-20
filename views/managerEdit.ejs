@@ -32,7 +32,7 @@
                     type="<%= columns[key].type.includes('int') || columns[key].type.includes('decimal') ? 'number' : 'text' %>"
                     id="<%= key %>"
                     name="<%= key %>"
-                    value="<%= item[key] %>"
+                    value="<%= item[key] !== null ? item[key] : '' %>"
                     <%= columns[key].nullable === false ? 'required' : '' %>
                 >
                 <br><br>
