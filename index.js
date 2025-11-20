@@ -101,6 +101,9 @@ app.get("/logout", (req, res) => {
     });
 });
 
+// note, the following was modified so that the users role is also passed to landing.ejs
+// for conditional button rendering
+//now "role" is included in the template data so the ejs page can check if the user is an admin
 app.get("/landing", async (req, res) => {
   if (!req.session.isLoggedIn) {
     return res.render("login", { error_message: "Please log in to access this page" });
@@ -138,7 +141,7 @@ const departmentsWithMeds = departments.map(dept => {
 });
 
 
-    res.render("landing", { departments: departmentsWithMeds });
+    res.render("landing", { departments: departmentsWithMeds, role:req.session.role }); // modded here to pass role for rendering
   } catch (err) {
     console.error("Error loading data:", err);
     res.render("landing", { departments: [], error_message: "Could not load departments." });
