@@ -27,13 +27,11 @@
   </style>
 </head>
 <body>
-    <a href="managerView" class="btn btn-primary mt-3">To Manager View</a>
   <%- include('banner', {
     showLogout: true,
-    showRecords: false,
+    showRecords: isAdmin,
     showBack: false
 }) %>
-
   <div class="app">
     <aside class="sidebar">
       <div style="font-size:13px; margin-bottom:8px;">Departments</div>

@@ -78,6 +78,9 @@ app.post("/login", (req, res) => {
         req.session.isLoggedIn = true;
         req.session.username = sName;
         req.session.role = users[0].role;
+        try {console.log(req.session.isLoggedIn)} catch{console.log("couldn't get isLoggedIn")}
+        try {console.log(req.session.username)} catch{console.log("couldn't get username")}
+        try {console.log(req.session.role)} catch{console.log("couldn't get role")}
         res.redirect("/landing");
       } else {
         // No matching user found
@@ -111,10 +114,13 @@ app.get("/landing", async (req, res) => {
 
   try {
     // 1. Get all departments (column: departmentid, departmentname)
-    const departments = await knex("departments").select();
+    const departments = await db("departments").select();
+    const isAdmin = req.session.role === "admin";
+    console.log("----")
+    console.log(isAdmin)
 
     // 2. Get all department-medication pairings with medication details
-    const results = await knex("department_medications as dm")
+    const results = await db("department_medications as dm")
       .join("medications as m", "dm.medicationid", "m.medicationid")
       .select(
         "dm.departmentid",
@@ -141,10 +147,23 @@ const departmentsWithMeds = departments.map(dept => {
 });
 
 
-    res.render("landing", { departments: departmentsWithMeds, role:req.session.role }); // modded here to pass role for rendering
+    res.render("landing", { departments: departmentsWithMeds, isAdmin, role: req.session.role }); // modded here to pass role for rendering
   } catch (err) {
     console.error("Error loading data:", err);
     res.render("landing", { departments: [], error_message: "Could not load departments." });
+  }
+});
+
+app.get("/managerView", async (req, res) => {
+  if (!req.session.isLoggedIn) {
+    res.render("login");
+  } 
+  try {
+    const inventory = await db('medications').select().orderBy('medname');
+    res.render("managerView", { inventory });
+  } catch (err){
+    console.error(err);
+    res.status(500).send('Error retrieving inventory data');
   }
 });
 
