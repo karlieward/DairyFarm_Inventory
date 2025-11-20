@@ -1,48 +1,181 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Edit Medication</title>
+  <meta charset="UTF-8">
+  <title>Edit Medication</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: #f7f8fa;
+      min-height: 100vh;
+    }
+    .back-bar {
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      margin-top: 18px;
+      text-align: left;
+    }
+    .btn-link.floating-back {
+      background: #004522;
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 20px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s;
+      font-size: 1em;
+      box-shadow: 0 1px 8px rgba(16,24,40,.04);
+      border: none;
+      display: inline-block;
+    }
+    .btn-link.floating-back:hover {
+      background: #003419;
+      color: #fff;
+    }
+    .app {
+      max-width: 600px;
+      margin: 40px auto 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 80vh;
+      position: relative;
+    }
+    .main {
+      width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 32px 36px 24px 36px;
+      box-sizing: border-box;
+      margin-bottom: 32px;
+      box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.08);
+      position: relative;
+    }
+    h1 {
+      color: #000;
+      font-size: 1.5em;
+      font-weight: bold;
+      margin-top: 8px;
+      margin-bottom: 0;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1em;
+      margin-top: 18px;
+    }
+    label {
+      font-weight: 500;
+      color: #1e293b;
+      margin-bottom: 5px;
+      display: block;
+      font-size: 1em;
+    }
+    input[type="text"], input[type="number"], input[type="file"] {
+      border: 1px solid #e2e8f0;
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 1em;
+      background: #f8fafc;
+      outline: none;
+      width: 100%;
+      box-sizing: border-box;
+      margin-bottom: 2px;
+    }
+    input[type="file"] {
+      padding: 4px;
+      background: none;
+    }
+    .submit-row {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    button[type="submit"] {
+      padding: 8px 22px;
+      border-radius: 8px;
+      border: none;
+      background: #004522;
+      color: #fff;
+      font-weight: 600;
+      font-size: 1em;
+      cursor: pointer;
+      transition: background 0.2s;
+      align-self: center;
+      display: block;
+    }
+    button[type="submit"]:hover {
+      background: #003419;
+    }
+    .error-message {
+      color: #ef4444;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      padding: 10px 16px;
+      margin-bottom: 12px;
+      text-align: center;
+      font-size: 0.97em;
+    }
+    .current-image {
+      margin-bottom: 12px;
+    }
+    .current-image img {
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      max-width: 120px;
+      max-height: 120px;
+      display: block;
+      margin-bottom: 4px;
+    }
+  </style>
 </head>
 <body>
-    <h1>Edit Medication</h1>
-
-    <% if (error_message) { %>
-        <p style="color:red;"><%= error_message %></p>
-    <% } %>
-
-    <form action="/managerView/edit/<%= item.medicationid %>" method="POST" enctype="multipart/form-data">
+  <%- include('banner', { showLogout: true, showRecords: false, showBack: false, role: role }) %>
+  <div class="back-bar">
+    <a href="/managerView" class="btn-link floating-back">Back To Records</a>
+  </div>
+  <div class="app">
+    <main class="main">
+      <h1>Edit Medication</h1>
+      <% if (error_message) { %>
+        <div class="error-message"><%= error_message %></div>
+      <% } %>
+      <form action="/managerView/edit/<%= item.medicationid %>" method="POST" enctype="multipart/form-data">
         <% Object.keys(columns).forEach(key => { %>
-            <% if (key === 'medicationid') return; %> <!-- Skip primary key -->
-
-            <% if (key === 'image') { %>
-                <!-- Image field: show current image and allow upload -->
-                <% if (item[key]) { %>
-                    <label>Current Image:</label><br>
-                    <img src="<%= item[key] %>" width="120" alt="Image"><br><br>
-                <% } %>
-
-                <label for="image">Upload New Image (optional):</label>
-                <input type="file" id="image" name="image" accept="image/*">
-                <input type="hidden" name="existingImage" value="<%= item[key] %>">
-
-            <% } else { %>
-                <!-- Text or number inputs for other fields -->
-                <label for="<%= key %>"><%= key %>:</label>
-                <input
-                    type="<%= columns[key].type.includes('int') || columns[key].type.includes('decimal') ? 'number' : 'text' %>"
-                    id="<%= key %>"
-                    name="<%= key %>"
-                    value="<%= item[key] %>"
-                    <%= columns[key].nullable === false ? 'required' : '' %>
-                >
-                <br><br>
+          <% if (key === 'medicationid') return; %>
+          <% if (key === 'image') { %>
+            <% if (item[key]) { %>
+              <div class="current-image">
+                <label>Current Image:</label>
+                <img src="<%= item[key] %>" alt="Image">
+              </div>
             <% } %>
+            <label for="image">Upload New Image (optional):</label>
+            <input type="file" id="image" name="image" accept="image/*">
+            <input type="hidden" name="existingImage" value="<%= item[key] %>">
+          <% } else { %>
+            <label for="<%= key %>"><%= key.charAt(0).toUpperCase() + key.slice(1) %>:</label>
+            <input
+              type="<%= columns[key].type.includes('int') || columns[key].type.includes('decimal') ? 'number' : 'text' %>"
+              id="<%= key %>"
+              name="<%= key %>"
+              value="<%= item[key] %>"
+              <%= columns[key].nullable === false ? 'required' : '' %>
+            >
+          <% } %>
         <% }) %>
-
-        <button type="submit">Update Medication</button>
-    </form>
-
-    <br>
-    <a href="/managerView" class="btn btn-primary mt-3">Back To Manager View</a>
+        <div class="submit-row">
+          <button type="submit">Update Medication</button>
+        </div>
+      </form>
+    </main>
+  </div>
 </body>
 </html>
