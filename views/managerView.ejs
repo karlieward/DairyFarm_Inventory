@@ -1,82 +1,60 @@
 <!DOCTYPE html>
-
-<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Inventory Landing (Static Prototype)</title>
+  <title>Manager View</title>
   <style>
     :root {
       --bg: #f7f8fa;
       --panel: #ffffff;
       --ink: #0f172a;
-      --muted: #64748b;
       --line: #e2e8f0;
       --accent: #2563eb;
       --accent-weak: #93c5fd;
       --radius: 12px;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0; padding: 0; color: var(--ink); background: var(--bg);
-      font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Noto Sans JP, sans-serif;
-    }
-    .app {
-      display: grid; grid-template-columns: 280px 1fr; gap: 16px;
-      max-width: 1200px; margin: 24px auto; padding: 0 16px;
-    }
-    .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
-    .shadow { box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.06); }
-    .sidebar { padding: 16px; position: sticky; top: 16px; height: fit-content; }
-    .search { display: flex; gap: 8px; }
-    .search input {
-      flex: 1; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
-    }
-    .kicker { font-size: 12px; color: var(--muted); margin: 12px 0 8px; }
-    .dept-list { display: grid; gap: 8px; margin-top: 8px; }
-    .dept-btn {
-      padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
-      display: flex; align-items: center; justify-content: space-between; cursor: pointer;
-    }
-    .dept-btn[aria-current="true"] { border-color: var(--accent); outline: 2px solid var(--accent-weak); }
-
-    .main { display: grid; gap: 16px; }
-
-    .products { padding: 16px; }
-    .products h2 { margin: 0 0 8px; font-size: 18px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
-
-    .item { border: 1px solid var(--line); border-radius: 10px; padding: 12px; display: grid; gap: 8px; }
-    .item-head { display: grid; grid-template-columns: 48px 1fr; gap: 10px; align-items: center; }
-    .thumb { width: 48px; height: 48px; border-radius: 8px; border: 1px dashed var(--line); display: grid; place-items: center; font-size: 20px; }
-    .qty { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 8px; }
-    .qty button { width: 32px; height: 32px; border: none; background: #f8fafc; cursor: pointer; font-size: 16px; }
-    .qty input { width: 40px; text-align: center; border: none; outline: none; background: transparent; }
-
-    .summary { padding: 16px; }
-    .summary h3 { margin: 0 0 8px; font-size: 16px; }
-    .summary-list { border: 1px solid var(--line); border-radius: 8px; padding: 8px; background: #fff; }
-
-    .inventory { padding: 16px; }
-    table { width: 100%; border-collapse: collapse; background: #fff; }
-    th, td { padding: 10px; border-bottom: 1px solid var(--line); text-align: left; }
-    th { background: #f1f5f9; }
+    body { margin:0; padding:16px; font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background: var(--bg); color: var(--ink);}
+    h1 { margin-bottom: 16px; }
+    .btn { padding: 6px 12px; border-radius: 4px; cursor: pointer; border:none; }
+    .btn-primary { background-color: var(--accent); color: #fff; }
+    .btn-secondary { background-color: #f1f5f9; }
+    .search-bar { margin-bottom: 16px; display:flex; gap:8px; }
+    .search-bar input { flex:1; padding:6px 8px; border:1px solid var(--line); border-radius:4px; }
+    table { width:100%; border-collapse: collapse; background: var(--panel); margin-top:16px; }
+    th, td { padding:8px; border-bottom:1px solid var(--line); text-align:left; }
+    th { background:#f1f5f9; }
+    img { max-width:50px; max-height:50px; border-radius:4px; }
+    form.inline { display:inline; }
   </style>
 </head>
 <body>
+
   <h1>Manager View</h1>
-  <a href="landing" class="btn btn-primary mt-3">Back To Landing</a>
-  <form action="/managerView/add" method="get"> <!-- using get because this will be used to display an ejs file -->
-      <input type="submit" name="Add" value="Add" />
+  <a href="/landing" class="btn btn-primary">Back To Landing</a>
+
+  <!-- Search Form -->
+  <form action="/managerView" method="GET" class="search-bar">
+    <input type="text" name="search" placeholder="Search by medication name..." value="<%= searchQuery || '' %>">
+    <button type="submit" class="btn btn-primary">Search</button>
   </form>
 
+  <!-- Add Medication -->
+  <form action="/managerView/add" method="get" style="margin-bottom:16px;">
+    <input type="submit" name="Add" value="Add" class="btn btn-primary">
+  </form>
 
+  <!-- Medication Table -->
   <table>
     <thead>
       <tr>
-        <% if (inventory.length > 0) { %> <!-- If there is more than one row in 'inventory'-->
+        <% if (inventory.length > 0) { %>
           <% Object.keys(inventory[0]).forEach(col => { %>
             <th><%= col %></th>
           <% }) %>
+          <th>Edit</th>
+          <th>Delete</th>
         <% } else { %>
           <th>No Data to Display</th>
         <% } %>
@@ -87,28 +65,27 @@
       <tr>
         <% Object.keys(item).forEach(key => { %>
           <td>
-            <% if (key === "image" && item[key]) { %>
-              <img src="<%= item[key] %>" alt="Image" width="50">
+            <% if (key === 'image' && item[key]) { %>
+              <img src="<%= item[key] %>" alt="Medication Image">
             <% } else { %>
               <%= item[key] %>
             <% } %>
           </td>
         <% }) %>
         <td>
-            <form action="/managerView/edit/<%= item.medicationid %>" method="get"> <!-- using get because this will be used to display an ejs file -->
-                <input type="submit" name="Edit" value="Edit" />
-            </form>
+          <form action="/managerView/edit/<%= item.medicationid %>" method="get" class="inline">
+            <button type="submit" class="btn btn-secondary">Edit</button>
+          </form>
         </td>
         <td>
-          <form action="/managerView/delete/<%= item.medicationid %>" method="POST" style="display:inline">
-            <button type="submit">Delete</button>
+          <form action="/managerView/delete/<%= item.medicationid %>" method="POST" class="inline" onsubmit="return confirm('Delete this medication?');">
+            <button type="submit" class="btn btn-secondary">Delete</button>
           </form>
         </td>
       </tr>
-    <% }) %>
-  </tbody>
-
-
+      <% }) %>
+    </tbody>
   </table>
 
-</body></html>
+</body>
+</html>

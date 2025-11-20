@@ -156,19 +156,33 @@ app.get("/managerView", async (req, res) => {
   if (!req.session.isLoggedIn) {
     return res.render("login");
   }
+
   const isAdmin = req.session.role === "admin";
   if (!isAdmin) {
     req.session.error_message = "You do not have the credentials to view that page";
     return res.redirect("landing");
   }
+
   try {
-    const inventory = await db('medications').select().orderBy('medname');
-    res.render("managerView", { inventory });
-  } catch (err){
+    let query = db('medications').select().orderBy('medname');
+
+    // Check if a search query is provided
+    const searchQuery = req.query.search;
+    if (searchQuery) {
+      // Filter by medname, case-insensitive
+      query = query.where('medname', 'ilike', `%${searchQuery}%`);
+    }
+
+    const inventory = await query;
+
+    // Pass inventory and searchQuery to EJS
+    res.render("managerView", { inventory, searchQuery });
+  } catch (err) {
     console.error(err);
     res.status(500).send('Error retrieving inventory data');
   }
 });
+
 
 app.get("/managerView", async (req, res) => {
   if (!req.session.isLoggedIn) {
