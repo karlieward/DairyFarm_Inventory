@@ -8,7 +8,7 @@
     .app { display: flex; max-width: 1200px; margin: 24px auto; }
     .sidebar { width: 260px; background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 16px; margin-right: 16px; }
     .dept-btn { display: block; width: 100%; margin-bottom: 8px; padding: 10px 0; border: 1px solid #e2e8f0; background: #fff; border-radius: 8px; color: #0f172a; cursor: pointer; font-size: 15px; }
-    .dept-btn[aria-current="true"] { border-color: #2563eb; outline: 2px solid #93c5fd; }
+    .dept-btn[aria-current="true"] { border-color: #004522; outline: 2px solid #93c5fd; }
     .main { flex: 1; }
     .products { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; }
     .products h2 { margin-top: 0; }
@@ -141,6 +141,11 @@
                       data-medname="<%= item.medname %>">
                     <button type="button" class="increment">+</button>
                   </div>
+                </div>
+                <div class="qty">
+                  <button type="button" class="decrement">-</button>
+                  <input type="number" min="0" value="0" class="checkout-qty" data-medname="<%= item.medname %>">
+                  <button type="button" class="increment">+</button>
                 </div>
               </div>
             <% }); %>

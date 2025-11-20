@@ -3,7 +3,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #f0f0f0;
+    background: #fff;
     color: #fff;
     padding: 12px 24px;
     font-size: 1.2em;
@@ -44,18 +44,26 @@
     display: inline-block;
   }
   .logout-link {
-    background: #e74c3c;
+    background: #1c1c1c;
   }
   .logout-link:hover {
-    background: #c0392b;
+    background: #5a5a5a;
   }
-  .records-btn:hover,
-  .back-btn:hover {
+  .admin-btn {
+    background: #1c1c1c;
+  }
+    .admin-btn:hover {
+      background: #5a5a5a;
+    }
+  .records-btn:hover, .back-btn:hover {
     background: #217dbb;
   }
   #company {
     color: rgb(0, 0, 0);
+    font-family: 'Scala Pro', serif;
+    font-size: 40px
   }
+  
 </style>
 <header class="banner">
   <div class="banner-left">
@@ -65,11 +73,7 @@
     <% } %>
   </div>
   <div class="banner-center">
-<<<<<<< Updated upstream
-    <img src="/images/WardsDairy.png" alt="Logo" class="banner-logo" />
-=======
     <img src="/images/WardsDairy.png" alt="Wards Dairy Logo" class="banner-logo" />
->>>>>>> Stashed changes
   </div>
   <div class="banner-right">
     <% if (showRecords) { %>
@@ -78,5 +82,18 @@
     <% if (showLogout) { %>
       <a href="/logout" class="logout-link">Logout</a>
     <% } %>
+    <!-- ADMIN BUTTON START -->
+      <% 
+        //This admin-only button now links to managerView.ejs via /managerView route
+        //Functionality: Navigates to managerView.ejs, which should only be accessible to admins.
+      %>
+      <% if (typeof role !== 'undefined' && role === 'admin') { %>
+        <a href="/managerView" class="admin-btn-link">
+          <button class="admin-btn" type="button">
+            Go to Manager View
+          </button>
+        </a>
+      <% } %>
+      <!-- ADMIN BUTTON END -->
   </div>
 </header>

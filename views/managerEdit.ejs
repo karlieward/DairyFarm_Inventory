@@ -1,11 +1,48 @@
-<h3>Edit Medication</h3>
-<form action="/managerView/edit/<%= item.id %>" method="POST" enctype="multipart/form-data">
-  <input type="text" name="medname" value="<%= item.medname %>" required>
-  <input type="number" name="quantity" value="<%= item.quantity %>" required>
-  <input type="text" name="category" value="<%= item.category %>" required>
-  <% if (item.image) { %>
-    <img src="<%= item.image %>" alt="Current Image" width="100">
-  <% } %>
-  <input type="file" name="image" accept="image/*">
-  <button type="submit">Save</button>
-</form>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Medication</title>
+</head>
+<body>
+    <h1>Edit Medication</h1>
+
+    <% if (error_message) { %>
+        <p style="color:red;"><%= error_message %></p>
+    <% } %>
+
+    <form action="/managerView/edit/<%= item.medicationid %>" method="POST" enctype="multipart/form-data">
+        <% Object.keys(columns).forEach(key => { %>
+            <% if (key === 'medicationid') return; %> <!-- Skip primary key -->
+
+            <% if (key === 'image') { %>
+                <!-- Image field: show current image and allow upload -->
+                <% if (item[key]) { %>
+                    <label>Current Image:</label><br>
+                    <img src="<%= item[key] %>" width="120" alt="Image"><br><br>
+                <% } %>
+
+                <label for="image">Upload New Image (optional):</label>
+                <input type="file" id="image" name="image" accept="image/*">
+                <input type="hidden" name="existingImage" value="<%= item[key] %>">
+
+            <% } else { %>
+                <!-- Text or number inputs for other fields -->
+                <label for="<%= key %>"><%= key %>:</label>
+                <input
+                    type="<%= columns[key].type.includes('int') || columns[key].type.includes('decimal') ? 'number' : 'text' %>"
+                    id="<%= key %>"
+                    name="<%= key %>"
+                    value="<%= item[key] %>"
+                    <%= columns[key].nullable === false ? 'required' : '' %>
+                >
+                <br><br>
+            <% } %>
+        <% }) %>
+
+        <button type="submit">Update Medication</button>
+    </form>
+
+    <br>
+    <a href="/managerView" class="btn btn-primary mt-3">Back To Manager View</a>
+</body>
+</html>

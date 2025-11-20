@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Add Medication</title>
+</head>
+<body>
+    <h1>Add New Medication</h1>
+
+    <% if (error_message) { %>
+        <p style="color:red;"><%= error_message %></p>
+    <% } %>
+
+    <form action="/managerView/add" method="POST" enctype="multipart/form-data">
+        <% Object.keys(columns).forEach(key => { %>
+            <% if (key === 'medicationid') { return; } %> <!-- skip primary key -->
+            
+            <% if (key === 'image') { %>
+                <label for="image">Upload Image:</label>
+                <input type="file" id="image" name="image" accept="image/*">
+                <br><br>
+            <% } else { %>
+                <label for="<%= key %>"><%= key %>:</label>
+                <input 
+                    type="<%= columns[key].type.includes('int') || columns[key].type.includes('decimal') ? 'number' : 'text' %>" 
+                    id="<%= key %>" 
+                    name="<%= key %>" 
+                    value=""
+                    <%= columns[key].nullable === false ? 'required' : '' %>
+                >
+                <br><br>
+            <% } %>
+        <% }) %>
+
+        <button type="submit">Add Medication</button>
+    </form>
+
+    <br>
+    <a href="/managerView" class="btn btn-primary mt-3">Back To Manager View</a>
+</body>
+</html>

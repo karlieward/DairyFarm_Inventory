@@ -65,13 +65,8 @@
 <body>
   <h1>Manager View</h1>
   <a href="landing" class="btn btn-primary mt-3">Back To Landing</a>
-  <h3>Add Medication</h3>
-  <form action="/managerView/add" method="POST" enctype="multipart/form-data">
-    <input type="text" name="medname" placeholder="Medication Name" required>
-    <input type="number" name="quantity" placeholder="Quantity" required>
-    <input type="text" name="category" placeholder="Category" required>
-    <input type="file" name="image" accept="image/*" required>
-    <button type="submit">Add</button>
+  <form action="/managerView/add" method="get"> <!-- using get because this will be used to display an ejs file -->
+      <input type="submit" name="Add" value="Add" />
   </form>
 
 
@@ -90,17 +85,22 @@
     <tbody>
       <% inventory.forEach(item => { %>
       <tr>
-        <td><%= item.medname %></td>
-        <td><%= item.quantity %></td>
-        <td><%= item.category %></td>
+        <% Object.keys(item).forEach(key => { %>
+          <td>
+            <% if (key === "image" && item[key]) { %>
+              <img src="<%= item[key] %>" alt="Image" width="50">
+            <% } else { %>
+              <%= item[key] %>
+            <% } %>
+          </td>
+        <% }) %>
         <td>
-          <% if (item.image) { %>
-            <img src="<%= item.image %>" alt="Image" width="50">
-          <% } %>
+            <form action="/managerView/edit/<%= item.medicationid %>" method="get"> <!-- using get because this will be used to display an ejs file -->
+                <input type="submit" name="Edit" value="Edit" />
+            </form>
         </td>
         <td>
-          <a href="/managerView/edit/<%= item.id %>">Edit</a>
-          <form action="/managerView/delete/<%= item.id %>" method="POST" style="display:inline">
+          <form action="/managerView/delete/<%= item.medicationid %>" method="POST" style="display:inline">
             <button type="submit">Delete</button>
           </form>
         </td>
