@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const session = require('express-session');
 const path = require('path');
-const bodyParser = require('body-parser');
 const port = process.env.PORT || 3000;
 const db = require("knex")({
     client: "pg",
@@ -32,7 +31,7 @@ const upload = multer({ storage: storage });
 
 
 
-let app = express();
+const app = express();
 
 app.set('view engine', 'ejs');
 
@@ -45,13 +44,14 @@ app.use(
     })
 )
 app.use(express.urlencoded({extended: true}));
+app.use(express.json());
 
 app.use((req, res, next) => {
     if (req.path === '/' || req.path === '/login' || req.path === '/logout') {return next();}
 
-    if (req.session.isLoggedIn) {return next();;}
+    if (req.session.isLoggedIn) {return next();}
 
-    else {res.render('login', { error_message: "Please log in to access this page"});} 
+    else {return res.render('login', { error_message: "Please log in to access this page"});}
 });
 
 app.get("/", (req, res) => {
@@ -320,18 +320,40 @@ app.post("/managerView/delete/:id", async (req, res) => {
 
 
 app.post('/checkout', express.json(), async (req, res) => {
-  const checkouts = req.body.items; // medicationid and quantity
+  const checkouts = Array.isArray(req.body?.items) ? req.body.items : [];
+  if (checkouts.length === 0) {
+    return res.status(400).json({ success: false, message: 'No items provided.' });
+  }
+
   try {
-    for (const item of checkouts) {
-      // Decrement inventory for each item (careful: do not allow < 0)
-      await knex('medications')
-        .where('medicationid', item.medicationid)
-        .decrement('quantityonhand', item.quantity);
-    }
-    res.json({success: true, message: 'Checkout successful!'});
+    await knex.transaction(async (trx) => {
+      for (const rawItem of checkouts) {
+        const medicationId = rawItem?.medicationid;
+        const quantity = Number(rawItem?.quantity);
+
+        if (!medicationId || !Number.isInteger(quantity) || quantity <= 0) {
+          throw { status: 400, message: 'Each item must include a medicationid and a positive quantity.' };
+        }
+
+        const updated = await trx('medications')
+          .where('medicationid', medicationId)
+          .andWhere('quantityonhand', '>=', quantity)
+          .update({
+            quantityonhand: trx.raw('quantityonhand - ?', [quantity]),
+          });
+
+        if (updated === 0) {
+          throw { status: 400, message: `Insufficient stock for medication ${medicationId}.` };
+        }
+      }
+    });
+
+    res.json({ success: true, message: 'Checkout successful!' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({success: false, message: 'Checkout failed!'});
+    const status = err?.status || 500;
+    const message = err?.message || 'Checkout failed!';
+    console.error('Checkout error:', err);
+    res.status(status).json({ success: false, message });
   }
 });
 

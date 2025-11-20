@@ -13,17 +13,83 @@
     .products { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 24px; }
     .products h2 { margin-top: 0; }
     .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-    .item { border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px; background: #fafcff; }
+    .item {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 14px;
+      background: #fafcff;
+      display: flex;              
+      align-items: center;
+      gap: 16px;
+    }    
     .item-head { display: flex; align-items: center; gap: 12px; }
-    .thumb { width: 48px; height: 48px; border-radius: 8px; border: 1px dashed #e2e8f0; display: flex; align-items: center; justify-content: center; }
-    .thumb img { max-width: 100%; max-height: 100%; border-radius: 8px; }
-    .qty { display: flex; align-items: center; gap: 2px; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; background: #f8fafc; }
-    .qty button { width: 32px; height: 32px; border: none; background: #f7f8fa; color: #2563eb; font-size: 20px; border-radius: 50%; cursor: pointer; transition: background 0.2s; }
-    .qty button:hover { background: #e2e8f0; }
-    .qty input { width: 40px; height: 28px; text-align: center; border: none; background: transparent; font-size: 16px; outline: none; }
-    .summary { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; margin-top:24px; padding: 24px;}
-    .summary-list { margin:8px 0 16px 0;}
-    #checkoutBtn { padding:8px 20px; border-radius: 8px; border: none; background:#2563eb; color:#fff; font-weight:600; cursor:pointer;}
+    .thumb {
+      width: 120px;
+      height: 120px;
+      border-radius: 12px;
+      border: 1px dashed #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      background: #fff;
+    }    
+    .thumb img {
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 12px;
+    } 
+    .item-right {
+      display: flex;
+      flex-direction: column;    /* 名前 → qty → 在庫 を縦 */
+      gap: 8px;
+    }   
+  .item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .item-name {
+    font-weight: 600;
+  }
+  .item-stock {
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .qty {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 4px;
+    background: #f8fafc;
+    align-self: flex-start;
+  }
+  .qty button {
+    width: 32px; height: 32px;
+    border: none;
+    background: #f7f8fa;
+    color: #2563eb;
+    font-size: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .qty button:hover { background: #e2e8f0; }
+  .qty input {
+    width: 40px;
+    height: 28px;
+    text-align: center;
+    border: none;
+    background: transparent;
+    font-size: 16px;
+    outline: none;
+  }
+  .summary { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; margin-top:24px; padding: 24px;}
+  .summary-list { margin:8px 0 16px 0;}
+  #checkoutBtn { padding:8px 20px; border-radius: 8px; border: none; background:#2563eb; color:#fff; font-weight:600; cursor:pointer;}
   </style>
 </head>
 <body>
@@ -44,22 +110,34 @@
 
     <main class="main">
       <% departments.forEach((dept, idx) => { %>
-        <section class="products dept-section" style="<%= idx === 0 ? '' : 'display:none;' %>" data-idx="<%= idx %>">
+        <section class="products dept-section" style = "<%= idx === 0 ? '' : 'display:none;' %>" data-idx="<%= idx %>">
           <h2><%= dept.deptname %></h2>
           <div class="grid">
             <% dept.items.forEach(item => { %>
               <div class="item" data-item-id="<%= item.id %>">
-                <div class="item-head">
-                  <div class="thumb">
-                    <% if (item.image) { %>
-                      <img src="<%= item.image %>" alt="<%= item.medname %>">
-                    <% } else { %>
-                      💊
-                    <% } %>
+                <!-- left picture -->
+                <div class="thumb">
+                  <% if (item.image) { %>
+                    <img src="<%= item.image %>" alt="<%= item.medname %>">
+                  <% } else { %>
+                    💊
+                  <% } %>
+                </div>
+                <!-- right:quantity, name, stock -->
+                <div class="item-right">
+                  <div class="item-info">
+                    <div class="item-name"><%= item.medname %></div>
+                    <div class="item-stock">In stock: <%= item.quantityonhand %></div>
                   </div>
-                  <div>
-                    <div style="font-weight:600"><%= item.medname %></div>
-                    <div style="font-size:13px; color:#64748b;">In stock: <%= item.quantityonhand %></div>
+                  <div class="qty">
+                    <button type="button" class="decrement">−</button>
+                    <input
+                      type="number"
+                      min="0"
+                      value="0"
+                      class="checkout-qty"
+                      data-medname="<%= item.medname %>">
+                    <button type="button" class="increment">+</button>
                   </div>
                 </div>
                 <div class="qty">
@@ -90,6 +168,10 @@
         document.querySelector('.dept-section[data-idx="' + idx + '"]').style.display = '';
         document.querySelectorAll('.dept-btn').forEach(b => b.removeAttribute('aria-current'));
         btn.setAttribute('aria-current', 'true');
+
+        // Clear any unsubmitted quantities when switching departments to avoid mixing orders.
+        document.querySelectorAll('.checkout-qty').forEach(input => { input.value = 0; });
+        updateSummary();
       });
     });
 
