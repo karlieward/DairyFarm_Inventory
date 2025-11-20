@@ -116,8 +116,6 @@ app.get("/landing", async (req, res) => {
     // 1. Get all departments (column: departmentid, departmentname)
     const departments = await db("departments").select();
     const isAdmin = req.session.role === "admin";
-    console.log("----")
-    console.log(isAdmin)
 
     // 2. Get all department-medication pairings with medication details
     const results = await db("department_medications as dm")
@@ -156,8 +154,13 @@ const departmentsWithMeds = departments.map(dept => {
 
 app.get("/managerView", async (req, res) => {
   if (!req.session.isLoggedIn) {
-    res.render("login");
-  } 
+    return res.render("login");
+  }
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
+  }
   try {
     const inventory = await db('medications').select().orderBy('medname');
     res.render("managerView", { inventory });
@@ -171,6 +174,11 @@ app.get("/managerView", async (req, res) => {
   if (!req.session.isLoggedIn) {
     res.render("login");
   } 
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
+  }
   try {
     const inventory = await db('medications').select().orderBy('medname');
     res.render("managerView", { inventory });
@@ -181,9 +189,14 @@ app.get("/managerView", async (req, res) => {
 });
 
 app.get("/managerView/add", async (req, res) => {
-  if (!req.session.isLoggedIn) 
+  if (!req.session.isLoggedIn)  {
       return res.render("login", { error_message: "Please log in" });
-
+  }
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
+  }
   try {
     // Get column information from medications table
     const columns = await db('medications').columnInfo();
@@ -199,8 +212,13 @@ app.get("/managerView/add", async (req, res) => {
 });
 
 app.post("/managerView/add", upload.single('image'), async (req, res) => {
-  if (!req.session.isLoggedIn) 
-      return res.render("login", { error_message: "Please log in" });
+  if (!req.session.isLoggedIn) {
+      return res.render("login", { error_message: "Please log in" });}
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
+  }
 
   try {
     // Get all columns info from medications table
@@ -233,7 +251,11 @@ app.post("/managerView/add", upload.single('image'), async (req, res) => {
 
 app.get("/managerView/edit/:medicationid", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
-
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
+  }
   try {
     const item = await db("medications")
       .where({ medicationid: req.params.medicationid })
@@ -260,6 +282,11 @@ app.get("/managerView/edit/:medicationid", async (req, res) => {
 app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, res) => {
   if (!req.session.isLoggedIn) {
     return res.render("login", { error_message: "Please log in" });
+  }
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
   }
   const medicationid = req.params.medicationid;
   // Start with a copy of the form data
@@ -296,7 +323,11 @@ app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, 
 
 app.post("/managerView/delete/:id", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
-
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
+  }
   const { id } = req.params;
 
   try {

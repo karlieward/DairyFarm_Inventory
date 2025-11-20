@@ -92,6 +92,11 @@
   #checkoutBtn { padding:8px 20px; border-radius: 8px; border: none; background:#2563eb; color:#fff; font-weight:600; cursor:pointer;}
   </style>
 </head>
+<% if (typeof error_message !== 'undefined' && error_message) { %>
+  <script>
+    alert("<%= error_message %>");
+  </script>
+<% } %>
 <body>
   <%- include('banner', {
     showLogout: true,
