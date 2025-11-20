@@ -201,6 +201,7 @@ app.get("/managerView", async (req, res) => {
 });
 
 
+
 app.get("/managerView", async (req, res) => {
   if (!req.session.isLoggedIn) {
     res.render("login");
