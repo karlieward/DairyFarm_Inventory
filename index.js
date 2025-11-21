@@ -327,6 +327,23 @@ app.post('/checkout', express.json(), async (req, res) => {
   }
 });
 
+app.get("/auditLogs", async (req, res) => {
+  if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
+
+  const isAdmin = req.session.role === "admin";
+  if (!isAdmin) return res.redirect("landing");
+
+  try {
+    // Fetch all audit logs, newest first
+    const logs = await db('audit_logs').orderBy('timestamp', 'desc');
+    res.render("auditLogs", { logs });
+  } catch (err) {
+    console.error("Error fetching audit logs:", err);
+    res.status(500).send("Error fetching audit logs");
+  }
+});
+
+
 app.listen(port, () => {
     console.log("The server is listening");
     console.log(`Server running on http://localhost:${port}`);
