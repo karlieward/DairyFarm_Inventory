@@ -123,11 +123,13 @@
   </style>
 </head>
 <body>
-  <%- include('banner', {
-    showLogout: true,
-    showRecords: isAdmin,
-    showBack: false,
-  }) %>
+ <%- include('banner', {
+  showLogout: true,
+  showRecords: isAdmin,
+  showBack: false,
+  role: role
+}) %>
+
 
   <h1>Manager View</h1>
   <a href="/landing" class="btn btn-primary">Back To Landing</a>
