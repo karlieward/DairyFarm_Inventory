@@ -147,54 +147,34 @@
       <% if (error_message) { %>
         <div class="error-message"><%= error_message %></div>
       <% } %>
+
       <form action="/managerView/edit/<%= item.medicationid %>" method="POST" enctype="multipart/form-data">
         <% Object.keys(columns).forEach(key => { %>
           <% if (key === 'medicationid') return; %>
+
           <% if (key === 'image') { %>
             <% if (item[key]) { %>
               <div class="current-image">
                 <label>Current Image:</label>
                 <img src="<%= item[key] %>" alt="Image">
               </div>
-            <% if (key === 'medicationid') return; %> <!-- Skip primary key -->
-
-            <% if (key === 'image') { %>
-                <!-- Image field: show current image and allow upload -->
-                <% if (item[key]) { %>
-                    <label>Current Image:</label><br>
-                    <img src="<%= item[key] %>" width="120" alt="Image"><br><br>
-                <% } %>
-
-                <label for="image">Upload New Image (optional):</label>
-                <input type="file" id="image" name="image" accept="image/*">
-                <input type="hidden" name="existingImage" value="<%= item[key] %>">
-
-            <% } else { %>
-                <!-- Text or number inputs for other fields -->
-                <label for="<%= key %>"><%= key %>:</label>
-                <input
-                    type="<%= columns[key].type.includes('int') || columns[key].type.includes('decimal') ? 'number' : 'text' %>"
-                    id="<%= key %>"
-                    name="<%= key %>"
-                    value="<%= item[key] !== null ? item[key] : '' %>"
-                    <%= columns[key].nullable === false ? 'required' : '' %>
-                >
-                <br><br>
             <% } %>
             <label for="image">Upload New Image (optional):</label>
             <input type="file" id="image" name="image" accept="image/*">
             <input type="hidden" name="existingImage" value="<%= item[key] %>">
+
           <% } else { %>
             <label for="<%= key %>"><%= key.charAt(0).toUpperCase() + key.slice(1) %>:</label>
             <input
               type="<%= columns[key].type.includes('int') || columns[key].type.includes('decimal') ? 'number' : 'text' %>"
               id="<%= key %>"
               name="<%= key %>"
-              value="<%= item[key] %>"
+              value="<%= item[key] !== null ? item[key] : '' %>"
               <%= columns[key].nullable === false ? 'required' : '' %>
             >
           <% } %>
         <% }) %>
+
         <div class="submit-row">
           <button type="submit">Update Medication</button>
         </div>

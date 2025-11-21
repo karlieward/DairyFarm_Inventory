@@ -238,33 +238,33 @@ app.post("/managerView/add", upload.single('image'), async (req, res) => {
 
 // MANAGER EDIT
 app.get("/managerView/edit/:medicationid", async (req, res) => {
-  if (!req.session.isLoggedIn) {
-    return res.render("login", { error_message: "Please log in" });
-  }
-
-  if (req.session.role !== "admin") {
-    req.session.error_message = "You do not have the credentials to view that page";
-    return res.redirect("landing");
-  }
+  if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
+  if (req.session.role !== "admin") return res.redirect("landing");
 
   const medicationid = req.params.medicationid;
 
   try {
-    const medication = await db("medications").where({ medicationid }).first();
-    if (!medication) {
-      return res.status(404).send("Medication not found");
+    // Fetch the medication record
+    const item = await db("medications").where({ medicationid }).first();
+    if (!item) {
+      return res.redirect("/managerView"); // record not found
     }
 
+    // Get table column info
+    const columns = await db('medications').columnInfo();
+
     res.render("managerEdit", {
-      medication,          // pass medication data to the EJS form
+      item,
+      columns,
       role: req.session.role,
       error_message: ""
     });
   } catch (err) {
     console.error("Error loading medication for edit:", err);
-    res.status(500).send("Error loading medication for edit");
+    res.status(500).send("Error loading edit form");
   }
 });
+
 
 
 
