@@ -28,15 +28,20 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Audit logging utility
-async function logAudit(userId, action, table, recordId, oldData = null, newData = null) {
+async function logAudit(securityid, action, table, recordId, oldData = null, newData = null) {
+  if (!securityid) {
+    console.warn("Audit log skipped: missing securityid");
+    return;
+  }
+
   try {
     await db('audit_logs').insert({
-      user_id: userId,
+      user_id: securityid,
       action,
       table_name: table,
       record_id: recordId,
-      old_data: oldData,
-      new_data: newData,
+      old_data: oldData ? JSON.stringify(oldData) : null,
+      new_data: newData ? JSON.stringify(newData) : null,
       timestamp: new Date().toISOString()
     });
   } catch (err) {
@@ -74,29 +79,34 @@ app.get("/", (req, res) => {
     }
 });
 
-app.post("/login", (req, res) => {
-    let sName = req.body.username;
-    let sPassword = req.body.password;
-    db.select("username", "password", "role")
-    .from('security')
-    .where("username", sName)
-    .andWhere("password", sPassword)
-    .then(users => {
-      if (users.length > 0) {
-        req.session.isLoggedIn = true;
-        req.session.username = sName;
-        req.session.role = users[0].role;
-        req.session.userId = users[0].id; // assuming your "security" table has id PK
-        res.redirect("/landing");
-      } else {
-        res.render("login", { error_message: "Invalid login" });
-      }
-    })
-    .catch(err => {
-      console.error("Login error:", err);
+app.post("/login", async (req, res) => {
+  const sName = req.body.username;
+  const sPassword = req.body.password;
+
+  try {
+    const users = await db('security')
+      .select('*')
+      .where({ username: sName, password: sPassword });
+
+    if (users.length > 0) {
+      const user = users[0];
+
+      // Set session values using the correct PK column
+      req.session.isLoggedIn = true;
+      req.session.username = sName;
+      req.session.role = user.role;
+      req.session.securityid = user.securityid; // <- change to actual column name
+
+      res.redirect("/landing");
+    } else {
       res.render("login", { error_message: "Invalid login" });
-    });
-}); 
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+    res.render("login", { error_message: "Invalid login" });
+  }
+});
+
 
 app.get("/logout", (req, res) => {
     req.session.destroy((err) => {
@@ -205,11 +215,10 @@ app.post("/managerView/add", upload.single('image'), async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
   if (req.session.role !== "admin") return res.redirect("landing");
 
-  const userId = req.session.userId;
+  const securityid = req.session.securityid;
   try {
     const columns = await db('medications').columnInfo();
     let insertData = {};
-
     Object.keys(columns).forEach(col => {
       if (col === 'medicationid') return;
       insertData[col] = col === 'image' ? (req.file ? '/images/' + req.file.filename : null) : (req.body[col] || null);
@@ -217,7 +226,7 @@ app.post("/managerView/add", upload.single('image'), async (req, res) => {
 
     const [newId] = await db('medications').insert(insertData).returning('medicationid');
 
-    await logAudit(userId, 'CREATE', 'medications', newId, null, insertData);
+    await logAudit(securityid, 'CREATE', 'medications', newId, null, insertData);
 
     res.redirect("/managerView");
   } catch (err) {
@@ -228,12 +237,46 @@ app.post("/managerView/add", upload.single('image'), async (req, res) => {
 
 
 // MANAGER EDIT
+app.get("/managerView/edit/:medicationid", async (req, res) => {
+  if (!req.session.isLoggedIn) {
+    return res.render("login", { error_message: "Please log in" });
+  }
+
+  if (req.session.role !== "admin") {
+    req.session.error_message = "You do not have the credentials to view that page";
+    return res.redirect("landing");
+  }
+
+  const medicationid = req.params.medicationid;
+
+  try {
+    const medication = await db("medications").where({ medicationid }).first();
+    if (!medication) {
+      return res.status(404).send("Medication not found");
+    }
+
+    res.render("managerEdit", {
+      medication,          // pass medication data to the EJS form
+      role: req.session.role,
+      error_message: ""
+    });
+  } catch (err) {
+    console.error("Error loading medication for edit:", err);
+    res.status(500).send("Error loading medication for edit");
+  }
+});
+
+
+
+
+
 app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
   if (req.session.role !== "admin") return res.redirect("landing");
 
-  const userId = req.session.userId;
+  const securityid = req.session.securityid;
   const medicationid = req.params.medicationid;
+
   let updateData = { ...req.body };
   updateData.image = req.file ? "/images/" + req.file.filename : req.body.existingImage || null;
   delete updateData.existingImage;
@@ -247,7 +290,7 @@ app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, 
   try {
     const oldData = await db("medications").where({ medicationid }).first();
     await db("medications").where({ medicationid }).update(updateData);
-    await logAudit(userId, 'UPDATE', 'medications', medicationid, oldData, updateData);
+    await logAudit(securityid, 'UPDATE', 'medications', medicationid, oldData, updateData);
 
     res.redirect("/managerView");
   } catch (err) {
@@ -257,40 +300,14 @@ app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, 
 });
 
 
-app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, res) => {
-  if (!req.session.isLoggedIn) {
-    return res.render("login", { error_message: "Please log in" });
-  }
-  if (req.session.role !== "admin") return res.redirect("landing");
-  const userId = req.session.userId;
-  const medicationid = req.params.medicationid;
-  let updateData = { ...req.body };
-  // Handle image
-  updateData.image = req.file ? "/images/" + req.file.filename : req.body.existingImage || null;
-  delete updateData.existingImage;
-  // Convert numeric fields
-  const numericFields = ["quantityonhand","minquantity","price","meatwithhold","milkwithhold","vendorid"];
-  numericFields.forEach(field => {
-    if (updateData[field] === "") updateData[field] = null;
-    else if (updateData[field] !== undefined) updateData[field] = field === "price" ? parseFloat(updateData[field]) : parseInt(updateData[field]);
-  });
-  try {
-    const oldData = await db("medications").where({ medicationid }).first();
-    await db("medications").where({ medicationid }).update(updateData);
-    await logAudit(userId, 'UPDATE', 'medications', medicationid, oldData, updateData);
-    res.redirect("/managerView");
-  } catch (err) {
-    console.error("Error updating medication:", err);
-    res.status(500).send("Error updating medication");
-  }
-});
 
 
+// --- MANAGER DELETE ---
 app.post("/managerView/delete/:medicationid", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
   if (req.session.role !== "admin") return res.redirect("landing");
 
-  const userId = req.session.userId;
+  const securityid = req.session.securityid;
   const medicationid = req.params.medicationid;
 
   try {
@@ -300,7 +317,7 @@ app.post("/managerView/delete/:medicationid", async (req, res) => {
     await db("treatment_medications").where({ medicationid }).del();
     await db("medications").where({ medicationid }).del();
 
-    await logAudit(userId, 'DELETE', 'medications', medicationid, oldData, null);
+    await logAudit(securityid, 'DELETE', 'medications', medicationid, oldData, null);
 
     res.redirect("/managerView");
   } catch (err) {
@@ -310,11 +327,12 @@ app.post("/managerView/delete/:medicationid", async (req, res) => {
 });
 
 
+// --- CHECKOUT ---
 app.post('/checkout', express.json(), async (req, res) => {
   const checkouts = Array.isArray(req.body?.items) ? req.body.items : [];
   if (checkouts.length === 0) return res.status(400).json({ success: false, message: 'No items provided.' });
 
-  const userId = req.session.userId; // ensure userId is in session
+  const securityid = req.session.securityid;
   try {
     await db.transaction(async (trx) => {
       for (const rawItem of checkouts) {
@@ -332,8 +350,7 @@ app.post('/checkout', express.json(), async (req, res) => {
 
         if (updated === 0) throw { status: 400, message: `Insufficient stock for medication ${medicationId}.` };
 
-        // Log audit
-        await logAudit(userId, 'UPDATE', 'medications', medicationId, oldData, { quantityonhand: oldData.quantityonhand - quantity });
+        await logAudit(securityid, 'UPDATE', 'medications', medicationId, oldData, { quantityonhand: oldData.quantityonhand - quantity });
       }
     });
 
