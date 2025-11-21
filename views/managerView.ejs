@@ -31,7 +31,7 @@
     }
     h1 {
       margin-top: 0;
-      color: #2563eb;
+      color: #000000;
       font-size: 1.15em;
       font-weight: bold;
     }
@@ -45,7 +45,7 @@
       padding: 5px 10px;
       border-radius: 8px;
       border: none;
-      background: #2563eb;
+      background: #004522;
       color: #fff;
       font-weight: 500;
       cursor: pointer;
@@ -54,7 +54,25 @@
       transition: background 0.2s;
       display: inline-block;
     }
-    .btn-primary:hover { background: #1e40af; }
+    .btn-primary:hover { background: #056937; }
+
+    .btn-primary.edit-btn{
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: none;
+      background: #0077b6;
+      color: #fff;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.90em;
+      text-decoration: none;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+
+    .btn-primary.edit-btn:hover{
+      background: #03045e;
+    }
 
     /* For delete button only, slightly wider */
     .btn-primary.delete-btn {
@@ -164,7 +182,7 @@
                 <% }) %>
                 <td>
                   <form action="/managerView/edit/<%= item.medicationid %>" method="get" style="display:inline;">
-                    <input type="submit" value="Edit" class="btn-primary"/>
+                    <input type="submit" value="Edit" class="btn-primary edit-btn"/>
                   </form>
                 </td>
                 <td>
