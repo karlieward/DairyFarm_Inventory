@@ -105,6 +105,11 @@
   </style>
 </head>
 <body>
+  <%- include('banner', {
+    showLogout: true,
+    showRecords: isAdmin,
+    showBack: false,
+  }) %>
 
   <h1>Manager View</h1>
   <a href="/landing" class="btn btn-primary">Back To Landing</a>
@@ -123,54 +128,6 @@
     <button type="submit" class="btn btn-warning">View Audit Logs</button>
   </form>
 
-
-  <!-- Medication Table -->
-  <table>
-    <thead>
-      <tr>
-        <% if (inventory.length > 0) { %>
-          <% Object.keys(inventory[0]).forEach(col => { %>
-            <th><%= col %></th>
-          <% }) %>
-          <th>Edit</th>
-          <th>Delete</th>
-        <% } else { %>
-          <th>No Data to Display</th>
-        <% } %>
-      </tr>
-    </thead>
-    <tbody>
-      <% inventory.forEach(item => { %>
-      <tr>
-        <% Object.keys(item).forEach(key => { %>
-          <td>
-            <% if (key === 'image' && item[key]) { %>
-              <img src="<%= item[key] %>" alt="Medication Image">
-            <% } else { %>
-              <%= item[key] %>
-            <% } %>
-          </td>
-        <% }) %>
-        <td>
-          <form action="/managerView/edit/<%= item.medicationid %>" method="get" class="inline">
-            <button type="submit" class="btn btn-secondary">Edit</button>
-          </form>
-        </td>
-        <td>
-          <form action="/managerView/delete/<%= item.medicationid %>" method="POST" class="inline" onsubmit="return confirm('Delete this medication?');">
-            <button type="submit" class="btn btn-secondary">Delete</button>
-          </form>
-        </td>
-      </tr>
-      <% }) %>
-    </tbody>
-  </table>
-
-  <%- include('banner', {
-    showLogout: true,
-    showRecords: false,
-    showBack: false,
-  }) %>
   <div class="app">
     <main class="main">
       <h1>Manager View</h1>

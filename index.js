@@ -193,7 +193,7 @@ app.get("/managerView", async (req, res) => {
 
     const inventory = await query;
 
-    res.render("managerView", { inventory, searchQuery });
+    res.render("managerView", { inventory, searchQuery, isAdmin });
   } catch (err) {
     console.error(err);
     res.status(500).send('Error retrieving inventory data');
