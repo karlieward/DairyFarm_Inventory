@@ -202,22 +202,23 @@ app.get("/managerView/add", async (req, res) => {
 });
 
 app.post("/managerView/add", upload.single('image'), async (req, res) => {
-  if (!req.session.isLoggedIn) {
-      return res.render("login", { error_message: "Please log in" });
-  }
+  if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
   if (req.session.role !== "admin") return res.redirect("landing");
+
   const userId = req.session.userId;
   try {
     const columns = await db('medications').columnInfo();
     let insertData = {};
+
     Object.keys(columns).forEach(col => {
       if (col === 'medicationid') return;
-      insertData[col] = col === 'image'
-        ? (req.file ? '/images/' + req.file.filename : null)
-        : (req.body[col] || null);
+      insertData[col] = col === 'image' ? (req.file ? '/images/' + req.file.filename : null) : (req.body[col] || null);
     });
-    const [newMedication] = await db('medications').insert(insertData).returning('medicationid');
-    await logAudit(userId, 'CREATE', 'medications', newMedication, null, insertData);
+
+    const [newId] = await db('medications').insert(insertData).returning('medicationid');
+
+    await logAudit(userId, 'CREATE', 'medications', newId, null, insertData);
+
     res.redirect("/managerView");
   } catch (err) {
     console.error("Error adding medication:", err);
@@ -225,30 +226,36 @@ app.post("/managerView/add", upload.single('image'), async (req, res) => {
   }
 });
 
+
 // MANAGER EDIT
-app.get("/managerView/edit/:medicationid", async (req, res) => {
+app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
-  const isAdmin = req.session.role === "admin";
-  if (!isAdmin) {
-    req.session.error_message = "You do not have the credentials to view that page";
-    return res.redirect("landing");
-  }
+  if (req.session.role !== "admin") return res.redirect("landing");
+
+  const userId = req.session.userId;
+  const medicationid = req.params.medicationid;
+  let updateData = { ...req.body };
+  updateData.image = req.file ? "/images/" + req.file.filename : req.body.existingImage || null;
+  delete updateData.existingImage;
+
+  const numericFields = ["quantityonhand","minquantity","price","meatwithhold","milkwithhold","vendorid"];
+  numericFields.forEach(field => {
+    if (updateData[field] === "") updateData[field] = null;
+    else if (updateData[field] !== undefined) updateData[field] = field === "price" ? parseFloat(updateData[field]) : parseInt(updateData[field]);
+  });
+
   try {
-    const item = await db("medications")
-      .where({ medicationid: req.params.medicationid })
-      .first();
-    if (!item) {
-      const inventory = await db('medications').select().orderBy('medname');
-      return res.status(404).render("managerView", { inventory, error_message: "Item not found.", role: req.session.role });
-    }
-    const columns = await db('medications').columnInfo();
-    res.render("managerEdit", { item, columns, error_message: "", role: req.session.role });
+    const oldData = await db("medications").where({ medicationid }).first();
+    await db("medications").where({ medicationid }).update(updateData);
+    await logAudit(userId, 'UPDATE', 'medications', medicationid, oldData, updateData);
+
+    res.redirect("/managerView");
   } catch (err) {
-    console.error("Error fetching item:", err);
-    const inventory = await db('medications').select().orderBy('medname');
-    res.status(500).render("managerView", { inventory, error_message: "Unable to load item for editing.", role: req.session.role });
+    console.error("Error updating medication:", err);
+    res.status(500).send("Error updating medication");
   }
 });
+
 
 app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, res) => {
   if (!req.session.isLoggedIn) {
@@ -278,17 +285,23 @@ app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, 
   }
 });
 
+
 app.post("/managerView/delete/:medicationid", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
   if (req.session.role !== "admin") return res.redirect("landing");
+
   const userId = req.session.userId;
   const medicationid = req.params.medicationid;
+
   try {
     const oldData = await db("medications").where({ medicationid }).first();
+
     await db("department_medications").where({ medicationid }).del();
     await db("treatment_medications").where({ medicationid }).del();
     await db("medications").where({ medicationid }).del();
+
     await logAudit(userId, 'DELETE', 'medications', medicationid, oldData, null);
+
     res.redirect("/managerView");
   } catch (err) {
     console.error(err);
@@ -296,10 +309,12 @@ app.post("/managerView/delete/:medicationid", async (req, res) => {
   }
 });
 
+
 app.post('/checkout', express.json(), async (req, res) => {
   const checkouts = Array.isArray(req.body?.items) ? req.body.items : [];
   if (checkouts.length === 0) return res.status(400).json({ success: false, message: 'No items provided.' });
-  const userId = req.session.userId;
+
+  const userId = req.session.userId; // ensure userId is in session
   try {
     await db.transaction(async (trx) => {
       for (const rawItem of checkouts) {
@@ -308,16 +323,20 @@ app.post('/checkout', express.json(), async (req, res) => {
         if (!medicationId || !Number.isInteger(quantity) || quantity <= 0) {
           throw { status: 400, message: 'Each item must include a medicationid and a positive quantity.' };
         }
+
         const oldData = await trx('medications').where('medicationid', medicationId).first();
         const updated = await trx('medications')
           .where('medicationid', medicationId)
           .andWhere('quantityonhand', '>=', quantity)
           .update({ quantityonhand: trx.raw('quantityonhand - ?', [quantity]) });
+
         if (updated === 0) throw { status: 400, message: `Insufficient stock for medication ${medicationId}.` };
+
         // Log audit
         await logAudit(userId, 'UPDATE', 'medications', medicationId, oldData, { quantityonhand: oldData.quantityonhand - quantity });
       }
     });
+
     res.json({ success: true, message: 'Checkout successful!' });
   } catch (err) {
     const status = err?.status || 500;
@@ -326,6 +345,7 @@ app.post('/checkout', express.json(), async (req, res) => {
     res.status(status).json({ success: false, message });
   }
 });
+
 
 app.get("/auditLogs", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
