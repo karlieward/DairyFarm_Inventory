@@ -17,6 +17,8 @@ const db = require("knex")({
 const multer = require('multer');
 const uploadRoot = path.join(__dirname, "images");
 const uploadDir = path.join(uploadRoot, "uploads");
+const uploadDir = uploadRoot;
+// Where to store uploaded images
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
         cb(null, uploadDir);
@@ -124,6 +126,8 @@ app.get("/landing", async (req, res) => {
 });
 
 // MANAGER VIEW
+
+
 app.get("/managerView", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login");
   if (req.session.role !== "admin") {
@@ -214,29 +218,62 @@ app.post("/managerView/edit/:medicationid", upload.single("image"), async (req, 
   if (!req.session.isLoggedIn) {
     return res.render("login", { error_message: "Please log in" });
   }
+
   const isAdmin = req.session.role === "admin";
   if (!isAdmin) {
     req.session.error_message = "You do not have the credentials to view that page";
     return res.redirect("landing");
   }
+
   const medicationid = req.params.medicationid;
   let updateData = { ...req.body };
+
+  // Copy form data
+  let updateData = { ...req.body };
+
+  // Handle image
   if (req.file) {
     updateData.image = "/images/" + req.file.filename;
   } else {
     updateData.image = req.body.existingImage || null;
   }
+
+  // Remove non-DB fields
   delete updateData.existingImage;
+
+  // Convert numeric fields to proper types
+  const numericFields = [
+    "quantityonhand",
+    "minquantity",
+    "price",
+    "meatwithhold",
+    "milkwithhold",
+    "vendorid"
+  ];
+
+  numericFields.forEach(field => {
+    if (updateData[field] === "") {
+      // optional numeric fields → null
+      updateData[field] = null;
+    } else if (updateData[field] !== undefined) {
+      // parse as int or float
+      updateData[field] = field === "price" ? parseFloat(updateData[field]) : parseInt(updateData[field]);
+    }
+  });
+
   try {
     await db("medications")
       .where({ medicationid })
       .update(updateData);
     res.redirect("/managerView");
   } catch (err) {
-    console.error(err);
+    console.error("Error updating medication:", err);
     res.status(500).send("Error updating medication");
   }
 });
+
+
+
 
 app.post("/managerView/delete/:medicationid", async (req, res) => {
   if (!req.session.isLoggedIn) return res.render("login", { error_message: "Please log in" });
