@@ -88,7 +88,7 @@
     }
     .summary { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; margin-top:24px; padding: 24px;}
     .summary-list { margin:8px 0 16px 0;}
-    #checkoutBtn { padding:8px 20px; border-radius: 8px; border: none; background:#2563eb; color:#fff; font-weight:600; cursor:pointer;}
+    #checkoutBtn { padding:8px 20px; border-radius: 8px; border: none; background:#004522; color:#fff; font-weight:600; cursor:pointer;}
   </style>
 </head>
 <% if (typeof error_message !== 'undefined' && error_message) { %>
@@ -150,7 +150,7 @@
       <section class="summary">
         <h3>Summary for checkout</h3>
         <div id="summaryList" class="summary-list" aria-live="polite"></div>
-        <button id="checkoutBtn" type="button">Checkout</button>
+        <button id="checkoutBtn" type="button", class="checkout-btn">Checkout</button>
       </section>
     </main>
   </div>
