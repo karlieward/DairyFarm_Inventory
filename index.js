@@ -169,6 +169,8 @@ const departmentsWithMeds = departments.map(dept => {
   }
 });
 
+
+
 app.get("/managerView", async (req, res) => {
   if (!req.session.isLoggedIn) {
     return res.render("login");
@@ -180,19 +182,17 @@ app.get("/managerView", async (req, res) => {
     return res.redirect("landing");
   }
 
+  const searchQuery = req.query.search || "";
+
   try {
     let query = db('medications').select().orderBy('medname');
-
-    // Check if a search query is provided
-    const searchQuery = req.query.search;
+    
     if (searchQuery) {
-      // Filter by medname, case-insensitive
-      query = query.where('medname', 'ilike', `%${searchQuery}%`);
+      query = query.where('medname', 'ilike', `%${searchQuery}%`); // PostgreSQL ilike for case-insensitive search
     }
 
     const inventory = await query;
 
-    // Pass inventory and searchQuery to EJS
     res.render("managerView", { inventory, searchQuery });
   } catch (err) {
     console.error(err);
