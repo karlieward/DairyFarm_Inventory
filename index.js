@@ -201,8 +201,6 @@ app.get("/managerView", async (req, res) => {
 });
 
 
-
-
 app.get("/managerView/add", async (req, res) => {
   if (!req.session.isLoggedIn)  {
       return res.render("login", { error_message: "Please log in" });
