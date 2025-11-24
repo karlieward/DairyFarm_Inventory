@@ -23,7 +23,7 @@
       background: #fff;
       border-radius: 12px;
       border: 1px solid #e2e8f0;
-      padding: 10px 10px 6px 10px; /* smallest padding yet */
+      padding: 10px 10px 6px 10px;
       box-sizing: border-box;
       margin-bottom: 24px;
       box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.08);
@@ -34,12 +34,6 @@
       color: #000000;
       font-size: 1.15em;
       font-weight: bold;
-    }
-    .action-bar {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin-bottom: 12px;
     }
     .btn-primary {
       padding: 5px 10px;
@@ -69,12 +63,9 @@
       transition: background 0.2s;
       display: inline-block;
     }
-
     .btn-primary.edit-btn:hover{
       background: #03045e;
     }
-
-    /* For delete button only, slightly wider */
     .btn-primary.delete-btn {
       padding: 5px 24px;
       background: #ef4444;
@@ -82,7 +73,6 @@
     .btn-primary.delete-btn:hover {
       background: #b91c1c;
     }
-
     .table-scroll {
       width: 100%;
       overflow-x: auto;
@@ -94,7 +84,7 @@
       border-collapse: collapse;
       background: #fff;
       margin-top: 0;
-      font-size: 0.88em; /* smallest table text */
+      font-size: 0.88em;
     }
     th {
       background: #f1f5f9;
@@ -120,6 +110,59 @@
       gap: 5px;
       justify-content: flex-start;
     }
+    /* NAVBAR STYLES */
+    .navbar-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: #f8f9fa;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(16,24,40,.03), 0 1px 4px rgba(16,24,40,.06);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .navbar-left,
+    .navbar-center,
+    .navbar-right {
+      display: flex;
+      align-items: center;
+    }
+    .navbar-center {
+      flex: 1;
+      justify-content: center;
+    }
+    .navbar-right a, .navbar-right form {
+      display: inline-block;
+    }
+    .navbar-right a {
+      margin-right: 8px;
+    }
+    .search-bar input[type="text"] {
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  font-size: 0.95em;
+  width: 280px; /* <-- Set the width here */
+}
+
+  
+    .btn-warning {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: none;
+      background: #004522;
+      font-weight: 550;
+      cursor: pointer;
+      font-size: 0.90em;
+      text-decoration: none;
+      transition: background 0.2s;
+      display: inline-block;
+      color: white
+    }
+    .btn-warning:hover { background: #056937; }
   </style>
 </head>
 <body>
@@ -130,31 +173,30 @@
   role: role
 }) %>
 
-
-  <h1>Manager View</h1>
-  <a href="/landing" class="btn btn-primary">Back To Landing</a>
-
-  <!-- Search Form -->
-  <form action="/managerView" method="GET" class="search-bar">
-    <input type="text" name="search" placeholder="Search by medication name..." value="<%= searchQuery || '' %>">
-    <button type="submit" class="btn btn-primary">Search</button>
-  </form>
-
-  <!-- Add Medication -->
-  <form action="/managerView/add" method="get" style="margin-bottom:16px;">
-    <input type="submit" name="Add" value="Add" class="btn btn-primary">
-  </form>
-  <form action="/auditLogs" method="get" style="display:inline">
-    <button type="submit" class="btn btn-warning">View Audit Logs</button>
-  </form>
-
   <div class="app">
     <main class="main">
-      <h1>Manager View</h1>
-      <div class="action-bar">
-        <a href="/landing" class="btn-primary">Back To Landing</a>
-        <a href="/managerView/add" class="btn-primary">Add Medication</a>
+      
+      <!-- NAVBAR CONTAINER -->
+      <div class="navbar-container">
+        <div class="navbar-left">
+          <a href="/landing" class="btn btn-primary">Back</a>
+        </div>
+        <div class="navbar-center">
+          <form action="/managerView" method="GET" class="search-bar" style="display:flex; gap:6px;">
+            <input type="text" name="search" placeholder="Search by medication name..." value="<%= searchQuery || '' %>">
+            <button type="submit" class="btn btn-primary">Search</button>
+          </form>
+        </div>
+        <div class="navbar-right">
+          <a href="/managerView/add" class="btn btn-primary" style="margin-right:8px;">Add Record</a>
+          <form action="/auditLogs" method="get" style="display:inline">
+            <button type="submit" class="btn-warning">Audit Logs</button>
+          </form>
+        </div>
       </div>
+      <!-- END NAVBAR CONTAINER -->
+
+      <h1>Manager View</h1>
       <div class="table-scroll">
         <table>
           <thead>

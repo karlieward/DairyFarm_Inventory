@@ -4,42 +4,145 @@
   <meta charset="UTF-8">
   <title>Audit Logs</title>
   <style>
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f0f0f0; }
-    pre { margin: 0; }
+    body {
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      background: #f7f8fa;
+    }
+    .app {
+      max-width: 1100px;
+      margin: 24px auto 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 80vh;
+    }
+    .main {
+      width: 100%;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+      padding: 18px 18px 18px 18px;
+      box-sizing: border-box;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.08);
+      overflow-x: auto;
+    }
+    h1 {
+      margin-top: 0;
+      color: #000000;
+      font-size: 1.15em;
+      font-weight: bold;
+    }
+    .navbar-container {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 14px;
+      background: #f8f9fa;
+      padding: 10px 16px;
+      border-radius: 8px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(16,24,40,.03), 0 1px 4px rgba(16,24,40,.06);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .btn-primary {
+      padding: 5px 10px;
+      border-radius: 8px;
+      border: none;
+      background: #004522;
+      color: #fff;
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 0.90em;
+      text-decoration: none;
+      transition: background 0.2s;
+      display: inline-block;
+    }
+    .btn-primary:hover { background: #056937; }
+
+    /* Table styles */
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 0;
+    }
+    table {
+      min-width: 900px;
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      margin-top: 0;
+      font-size: 0.90em;
+    }
+    th {
+      background: #f1f5f9;
+      white-space: nowrap;
+      font-size: 0.94em;
+      font-weight: 600;
+      padding: 7px 4px;
+      border-bottom: 1px solid #e2e8f0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    td {
+      padding: 7px 4px;
+      border-bottom: 1px solid #e2e8f0;
+      text-align: left;
+      vertical-align: top;
+      max-width: 240px;
+      word-break: break-word;
+      font-size: 0.90em;
+    }
+    td pre {
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      font-size: 0.95em;
+      background: #f6f8fa;
+      border-radius: 6px;
+      padding: 3px 4px;
+      margin: 0;
+    }
   </style>
 </head>
 <body>
-  <h1>Audit Logs</h1>
-  <a href="/managerView">Back to Manager View</a>
-  <table>
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>User ID</th>
-        <th>Action</th>
-        <th>Table</th>
-        <th>Record ID</th>
-        <th>Old Data</th>
-        <th>New Data</th>
-        <th>Timestamp</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% logs.forEach(log => { %>
-        <tr>
-          <td><%= log.id %></td>
-          <td><%= log.user_id %></td>
-          <td><%= log.action %></td>
-          <td><%= log.table_name %></td>
-          <td><%= log.record_id %></td>
-          <td><pre><%= JSON.stringify(log.old_data, null, 2) %></pre></td>
-          <td><pre><%= JSON.stringify(log.new_data, null, 2) %></pre></td>
-          <td><%= new Date(log.timestamp).toLocaleString() %></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
+  <div class="app">
+    <div class="main">
+      <div class="navbar-container">
+        <a href="/managerView" class="btn-primary">Back to Records</a>
+      </div>
+      <h1>Audit Logs</h1>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>User ID</th>
+              <th>Action</th>
+              <th>Table</th>
+              <th>Record ID</th>
+              <th>Old Data</th>
+              <th>New Data</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% logs.forEach(log => { %>
+              <tr>
+                <td><%= log.id %></td>
+                <td><%= log.user_id %></td>
+                <td><%= log.action %></td>
+                <td><%= log.table_name %></td>
+                <td><%= log.record_id %></td>
+                <td><pre><%= JSON.stringify(log.old_data, null, 2) %></pre></td>
+                <td><pre><%= JSON.stringify(log.new_data, null, 2) %></pre></td>
+                <td><%= new Date(log.timestamp).toLocaleString() %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
