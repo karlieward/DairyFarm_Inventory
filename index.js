@@ -6,11 +6,11 @@ const port = process.env.PORT || 3000;
 const db = require("knex")({
     client: "pg",
     connection: {
-        host : process.env.DB_HOST,
-        user : process.env.DB_USERNAME,
-        password : process.env.DB_PASSWORD,
-        database : process.env.DB_NAME,
-        port : process.env.DB_PORT
+        host : process.env.RDS_HOSTNAME || "localhost",
+        user : process.env.RDS_USERNAME || "postgres",
+        password : process.env.RDS_PASSWORD || "admin",
+        database : process.env.RDS_DB_NAME || "project3",
+        port : process.env.RDS_PORT || 5432
     }
 });
 
