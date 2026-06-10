@@ -7,7 +7,9 @@ const db = require("knex")({
     client: "pg",
     connection: {
         connectionString: process.env.DATABASE_URL || "postgresql://postgres:admin@localhost:5432/project3",
-        ssl: process.env.NODE_ENV === 'production' ? {rejectUnauthorized: false} : false
+        ssl: {
+            rejectUnauthorized: false
+        }
     }
 });
 
