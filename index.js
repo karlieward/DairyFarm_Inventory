@@ -6,12 +6,8 @@ const port = process.env.PORT || 3000;
 const db = require("knex")({
     client: "pg",
     connection: {
-        host : process.env.RDS_HOSTNAME || "localhost",
-        user : process.env.RDS_USERNAME || "postgres",
-        password : process.env.RDS_PASSWORD || "admin",
-        database : process.env.RDS_DB_NAME || "project3",
-        port : process.env.RDS_PORT || 5432,
-        ssl: process.env.DB_SSL ? {rejectUnauthorized: false} : false
+        connectionString: process.env.DATABASE_URL || "postgresql://postgres:admin@localhost:5432/project3",
+        ssl: process.env.NODE_ENV === 'production' ? {rejectUnauthorized: false} : false
     }
 });
 
@@ -72,9 +68,15 @@ app.use((req, res, next) => {
 });
 
 // Root/login
-app.get("/", (req, res) => {
-    if (req.session.isLoggedIn) {        
-        res.render("landing", { role: req.session.role });
+app.get("/", async (req, res) => {
+    if (req.session.isLoggedIn) {
+        try {
+            const departments = await db('departments').select('*');
+            res.render("landing", { role: req.session.role, departments: departments });
+        } catch (err) {
+            console.error("Error fetching departments:", err);
+            res.render("landing", { role: req.session.role, departments: [] });
+        }
     } else {
         res.render("login", { error_message: "" });
     }
